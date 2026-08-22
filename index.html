@@ -419,7 +419,7 @@
     <div class="center-box">
       <div class="name-title" id="clock-emp-name">Meno</div>
       <div class="clock-status" id="clock-status">Momentálne: mimo práce</div>
-      <button class="big-btn in" id="clock-btn" onclick="toggleClock()">PRÍCHOD</button>
+      <button class="big-btn in" id="clock-btn" onclick="openClockConfirm()">PRÍCHOD</button>
       <div class="secondary-link" onclick="openMyHistory()">📋 Môj prehľad odpracovaných dní</div>
       <div class="back-link" onclick="goHome()">← Späť</div>
     </div>
@@ -532,6 +532,18 @@
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-admin-pin')">Zrušiť</button>
       <button class="modal-btn primary" onclick="checkAdminPin()">Vstúpiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLOCK CONFIRM MODAL -->
+<div class="modal-overlay" id="modal-clock-confirm">
+  <div class="modal-box">
+    <h3 id="clock-confirm-title">Potvrdiť príchod</h3>
+    <p style="color:var(--muted); font-size:14.5px; margin-bottom:18px;" id="clock-confirm-text">Naozaj chceš zaznamenať príchod teraz?</p>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-clock-confirm')">Zrušiť</button>
+      <button class="modal-btn primary" id="clock-confirm-btn" onclick="confirmClockToggle()">Potvrdiť</button>
     </div>
   </div>
 </div>
@@ -760,6 +772,24 @@ function openClockScreen(emp) {
 
 function backToClockScreen() {
   openClockScreen(currentEmployee);
+}
+
+function openClockConfirm() {
+  var working = isWorking(currentEmployee.id);
+  var now = new Date();
+  var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock-confirm-title').textContent = working ? 'Potvrdiť odchod' : 'Potvrdiť príchod';
+  document.getElementById('clock-confirm-text').textContent = working
+    ? 'Naozaj chceš zaznamenať odchod teraz (' + timeStr + ')?'
+    : 'Naozaj chceš zaznamenať príchod teraz (' + timeStr + ')?';
+  var btn = document.getElementById('clock-confirm-btn');
+  btn.style.background = working ? 'var(--red)' : 'var(--green)';
+  openModal('modal-clock-confirm');
+}
+
+async function confirmClockToggle() {
+  closeModal('modal-clock-confirm');
+  await toggleClock();
 }
 
 async function toggleClock() {
