@@ -161,25 +161,127 @@
   .key-btn.action { background: transparent; box-shadow: none; color: var(--muted); font-size: clamp(13px, 3.6vw, 16px); }
 
   .name-title { font-family: 'Fraunces', serif; font-size: clamp(21px, 6vw, 27px); font-weight: 600; margin-bottom: 6px; }
+
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 320px;
+  }
+  .avatar-opt {
+    width: clamp(52px, 15vw, 64px); height: clamp(52px, 15vw, 64px);
+    border-radius: 50%;
+    background: var(--cream-soft);
+    border: 2.5px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(24px, 7vw, 30px);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(58,38,32,0.06);
+  }
+  .avatar-opt.selected { border-color: var(--terracotta); background: #FBEAD9; }
+  .employee-avatar { font-size: 1.3em; display: block; margin-bottom: 4px; }
   .sub-title { font-size: clamp(13px, 3.6vw, 15px); color: var(--muted); margin-bottom: 4px; }
 
   .clock-status { font-size: clamp(14px, 4vw, 17px); color: var(--muted); margin-bottom: 6vw; }
   .clock-status.working { color: var(--green); font-weight: 600; }
 
-  .big-btn {
-    width: clamp(150px, 45vw, 200px); height: clamp(150px, 45vw, 200px);
-    border-radius: 50%;
-    border: none;
-    font-size: clamp(16px, 4.6vw, 20px);
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #fff;
+  .dog-btn {
+    width: clamp(190px, 56vw, 250px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
     cursor: pointer;
-    box-shadow: 0 12px 28px rgba(58,38,32,0.22);
   }
-  .big-btn.in { background: linear-gradient(160deg, #5B9161, var(--green)); }
-  .big-btn.out { background: linear-gradient(160deg, #C4594A, var(--red)); }
-  .big-btn:active { transform: scale(0.97); }
+  .dog-btn:active .animal-face { transform: scale(0.95); }
+
+  .animal-face {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.1s ease, filter 0.2s ease;
+    box-shadow: 0 12px 28px rgba(58,38,32,0.22);
+    border: 6px solid #fff;
+  }
+  .animal-img {
+    width: 68%;
+    height: 68%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+  }
+  .mood-badge {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(58,38,32,0.25);
+    padding: 6px;
+  }
+  .mood-badge img { width: 100%; height: 100%; }
+
+  .dog-btn.in .animal-face { filter: grayscale(0.4) brightness(0.96); }
+  .dog-btn.in .mood-badge.mood-sad { display: flex; }
+
+  .dog-btn.out .animal-face { filter: none; }
+  .dog-btn.out .mood-badge.mood-happy { display: flex; }
+
+  .slogan-bubble {
+    position: relative;
+    background: #fff;
+    border-radius: 20px;
+    padding: 12px 20px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--espresso);
+    text-align: center;
+    margin-bottom: 24px;
+    max-width: 280px;
+    box-shadow: 0 4px 14px rgba(58,38,32,0.1);
+  }
+  .slogan-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 16px;
+    background: #fff;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+  }
+
+  .continue-btn {
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    padding: 14px;
+    margin-top: 26px;
+    background: var(--terracotta);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(201,127,83,0.3);
+  }
+  .continue-btn:active { opacity: 0.85; }
+
+  .big-btn-label { font-size: clamp(15px, 4.2vw, 18px); font-weight: 700; letter-spacing: 0.5px; color: var(--espresso); }
+
+  .mood-row {
+    display: flex; gap: 8px; justify-content: center; margin-top: 22px; flex-wrap: wrap;
+  }
+  .mood-opt {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--cream-soft); border: 2px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: pointer; box-shadow: 0 2px 6px rgba(58,38,32,0.06);
+  }
+  .mood-opt.selected { border-color: var(--terracotta); background: #FBEAD9; }
 
   .secondary-link {
     margin-top: 20px;
@@ -414,13 +516,28 @@
     </div>
   </div>
 
+  <!-- AVATAR PICKER (first login only) -->
+  <div class="screen" id="screen-avatar">
+    <div class="center-box">
+      <div class="name-title">Vitaj, <span id="avatar-emp-name"></span>!</div>
+      <div class="sub-title" style="margin-bottom:20px;">Vyber si svoj avatar</div>
+      <div class="avatar-grid" id="avatar-grid"></div>
+      <button class="continue-btn" onclick="confirmAvatarChoice()">Continue</button>
+    </div>
+  </div>
+
   <!-- CLOCK SCREEN -->
   <div class="screen" id="screen-clock">
     <div class="center-box">
       <div class="name-title" id="clock-emp-name">Meno</div>
       <div class="clock-status" id="clock-status">Momentálne: mimo práce</div>
-      <button class="big-btn in" id="clock-btn" onclick="openClockConfirm()">PRÍCHOD</button>
+      <div class="slogan-bubble" id="clock-slogan"></div>
+      <div class="dog-btn in" id="clock-btn" onclick="openClockConfirm()">
+        <span class="big-btn-label" id="clock-btn-label">PRÍCHOD</span>
+      </div>
+      <div class="mood-row" id="mood-row"></div>
       <div class="secondary-link" onclick="openMyHistory()">📋 Môj prehľad odpracovaných dní</div>
+      <div class="secondary-link" onclick="openAvatarPicker(currentEmployee, true)">🔄 Zmeniť zvieratko</div>
       <div class="back-link" onclick="goHome()">← Späť</div>
     </div>
   </div>
@@ -644,7 +761,8 @@ function renderEmployeeGrid() {
   state.employees.forEach(function(emp) {
     var card = document.createElement('div');
     card.className = 'employee-card' + (homeTab === 'dochadzka' && isWorking(emp.id) ? ' working' : '');
-    card.innerHTML = (homeTab === 'dochadzka' && isWorking(emp.id) ? '<span class="status-dot"></span>' : '') + emp.name;
+    var avatarHtml = (emp.avatar && ANIMALS[emp.avatar]) ? '<span class="employee-avatar">' + ANIMALS[emp.avatar].emoji + (emp.mood ? ' ' + emp.mood : '') + '</span>' : '';
+    card.innerHTML = avatarHtml + (homeTab === 'dochadzka' && isWorking(emp.id) ? '<span class="status-dot"></span>' : '') + emp.name;
     card.onclick = function() { openPinScreen(emp, homeTab === 'dochadzka' ? 'clock' : 'shifts'); };
     grid.appendChild(card);
   });
@@ -735,12 +853,31 @@ function pressPinKey(k) {
   if (pinBuffer.length === 4) setTimeout(checkPin, 150);
 }
 
+var pendingPinDestination = null;
+var selectedAvatar = null;
+
+var TWEMOJI_BASE = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/';
+
+var ANIMALS = {
+  pudlik:   { name: 'Biely pudlík', emoji: '🐩', code: '1f429', color: '#F3EEE6' },
+  zaba:     { name: 'Frog', emoji: '🐸', code: '1f438', color: '#DCEFC7' },
+  tucniak:  { name: 'Tučniak', emoji: '🐧', code: '1f427', color: '#E3E7EC' },
+  zirafa:   { name: 'Žirafa', emoji: '🦒', code: '1f992', color: '#FBEFD1' },
+  medvedik: { name: 'Medvedík', emoji: '🐻', code: '1f43b', color: '#EFE0CE' },
+  kuriatko: { name: 'Kuriatko', emoji: '🐤', code: '1f424', color: '#FDF3C9' },
+  macicka:  { name: 'Mačička', emoji: '🐱', code: '1f431', color: '#F2E3D2' }
+};
+var ANIMAL_ORDER = ['pudlik','zaba','tucniak','zirafa','medvedik','kuriatko','macicka'];
+
 function checkPin() {
   if (pinBuffer === currentEmployee.pin) {
-    if (pinPurpose === 'shifts') {
+    if (!currentEmployee.avatar) {
+      pendingPinDestination = pinPurpose;
+      openAvatarPicker(currentEmployee);
+    } else if (pinPurpose === 'shifts') {
       openShiftsScreen(currentEmployee);
     } else {
-      openClockScreen(currentEmployee);
+      openClockScreen(currentEmployee, 'greeting');
     }
   } else {
     document.getElementById('pin-error').textContent = 'Nesprávny PIN, skús znova.';
@@ -749,29 +886,163 @@ function checkPin() {
   }
 }
 
-function openClockScreen(emp) {
+var MOOD_OPTIONS = ['😄','🙂','😐','😫','😴','🥳'];
+var isChangingAvatarOnly = false;
+
+function openAvatarPicker(emp, isChangeOnly) {
+  isChangingAvatarOnly = !!isChangeOnly;
+  selectedAvatar = emp.avatar || null;
+  document.getElementById('avatar-emp-name').textContent = emp.name;
+  var grid = document.getElementById('avatar-grid');
+  grid.innerHTML = ANIMAL_ORDER.map(function(key) {
+    var a = ANIMALS[key];
+    return '<div class="avatar-opt' + (key === selectedAvatar ? ' selected' : '') + '" data-key="' + key + '" onclick="pickAvatar(\'' + key + '\')" title="' + a.name + '">' + a.emoji + '</div>';
+  }).join('');
+  showScreen('screen-avatar');
+}
+
+function pickAvatar(key) {
+  selectedAvatar = key;
+  document.querySelectorAll('.avatar-opt').forEach(function(el) {
+    el.classList.toggle('selected', el.getAttribute('data-key') === key);
+  });
+}
+
+async function confirmAvatarChoice() {
+  if (!selectedAvatar) { alert('Vyber si prosím zvieratko.'); return; }
+  var emp = state.employees.find(function(e) { return e.id === currentEmployee.id; });
+  if (emp) { emp.avatar = selectedAvatar; currentEmployee.avatar = selectedAvatar; }
+  await saveData();
+  renderEmployeeGrid();
+  if (isChangingAvatarOnly) {
+    openClockScreen(currentEmployee, 'greeting');
+  } else if (pendingPinDestination === 'shifts') {
+    openShiftsScreen(currentEmployee);
+  } else {
+    openClockScreen(currentEmployee, 'greeting');
+  }
+}
+
+function renderMoodRow() {
+  var row = document.getElementById('mood-row');
+  row.innerHTML = MOOD_OPTIONS.map(function(m) {
+    var sel = currentEmployee.mood === m ? ' selected' : '';
+    return '<div class="mood-opt' + sel + '" onclick="pickMood(\'' + m + '\')">' + m + '</div>';
+  }).join('');
+}
+
+async function pickMood(mood) {
+  var emp = state.employees.find(function(e) { return e.id === currentEmployee.id; });
+  if (emp) { emp.mood = mood; currentEmployee.mood = mood; }
+  await saveData();
+  renderMoodRow();
+}
+
+var GREETING_SLOGANS = [
+  'Hey there! Ready for today? ☕',
+  'Good to see you!',
+  'Let\'s make today great.',
+  'Hope you had a good rest 🌿',
+  'Ready to brew some magic?',
+  'Great to have you here.',
+  'Let\'s get this shift started!',
+  'A fresh shift, a fresh start.',
+  'You showed up – that\'s already a win.',
+  'Let\'s make some good coffee today.'
+];
+
+var ARRIVAL_SLOGANS = [
+  'One more coffee and the world is better ☕',
+  'Your shift, your rules 💪',
+  'Espresso yourself!',
+  'Those who work, win.',
+  'Smile, the customer can feel it.',
+  'Every cup has its own story.',
+  'Today belongs to you!',
+  'Brew the best coffee of the day.',
+  'Be the good mood in the room.',
+  'Work goes easier with a song in your head.',
+  'Try to outdo yourself today 🔥',
+  'Today you\'re brewing good vibes too.',
+  'Your smile is part of the recipe.',
+  'Good coffee, good day.',
+  'You\'ve got this!',
+  'Wishing you a great shift ✨'
+];
+
+var DEPARTURE_SLOGANS = [
+  'Great shift! See you next time 👋',
+  'You earned that break.',
+  'Rest up, you deserve it.',
+  'Thanks for today, see you soon!',
+  'Shift complete – go enjoy your day.',
+  'Well done today!',
+  'Goodbye for now, take care 🌙',
+  'The shift ends, the energy doesn\'t.',
+  'A solid shift deserves a solid break.',
+  'Thanks for being here today.',
+  'Off you go – see you next shift!',
+  'Great job, catch you later!'
+];
+
+function pickRandomSlogan(emp, pool) {
+  var recent = emp.recentSlogans || [];
+  var candidates = pool.map(function(_, i) { return i; }).filter(function(i) { return recent.indexOf(pool[i]) === -1; });
+  if (candidates.length === 0) { candidates = pool.map(function(_, i) { return i; }); recent = []; }
+  var chosen = candidates[Math.floor(Math.random() * candidates.length)];
+  recent.push(pool[chosen]);
+  if (recent.length > 15) recent.shift();
+  emp.recentSlogans = recent;
+  return pool[chosen];
+}
+
+function buildAnimalButton(key) {
+  var a = ANIMALS[key] || ANIMALS.pudlik;
+  return '<div class="animal-face" style="background:' + a.color + '">' +
+      '<img class="animal-img" src="' + TWEMOJI_BASE + a.code + '.svg" alt="' + a.name + '">' +
+      '<span class="mood-badge mood-happy"><img src="' + TWEMOJI_BASE + '1f60a.svg" alt="happy"></span>' +
+      '<span class="mood-badge mood-sad"><img src="' + TWEMOJI_BASE + '1f614.svg" alt="sad"></span>' +
+    '</div>';
+}
+
+function openClockScreen(emp, sloganContext) {
   currentEmployee = emp;
   var working = isWorking(emp.id);
   document.getElementById('clock-emp-name').textContent = emp.name;
   var statusEl = document.getElementById('clock-status');
   var btnEl = document.getElementById('clock-btn');
+
+  var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
+  btnEl.innerHTML = buildAnimalButton(animalKey) + '<span class="big-btn-label" id="clock-btn-label"></span>';
+
   if (working) {
     var openEntry = state.entries.find(function(e) { return e.employeeId === emp.id && !e.timeOut; });
     statusEl.textContent = 'V práci od ' + openEntry.timeIn;
     statusEl.className = 'clock-status working';
-    btnEl.textContent = 'ODCHOD';
-    btnEl.className = 'big-btn out';
+    document.getElementById('clock-btn-label').textContent = 'ODCHOD';
+    btnEl.className = 'dog-btn out';
   } else {
     statusEl.textContent = 'Momentálne: mimo práce';
     statusEl.className = 'clock-status';
-    btnEl.textContent = 'PRÍCHOD';
-    btnEl.className = 'big-btn in';
+    document.getElementById('clock-btn-label').textContent = 'PRÍCHOD';
+    btnEl.className = 'dog-btn in';
   }
+
+  var emp2 = state.employees.find(function(e) { return e.id === emp.id; });
+  var pool = sloganContext === 'departure' ? DEPARTURE_SLOGANS
+           : sloganContext === 'arrival' ? ARRIVAL_SLOGANS
+           : GREETING_SLOGANS;
+  var slogan = emp2 ? pickRandomSlogan(emp2, pool) : pool[0];
+  var sloganEl = document.getElementById('clock-slogan');
+  if (sloganEl) sloganEl.textContent = slogan;
+  saveData();
+
+  renderMoodRow();
   showScreen('screen-clock');
 }
 
 function backToClockScreen() {
-  openClockScreen(currentEmployee);
+  openClockScreen(currentEmployee, 'greeting');
 }
 
 function openClockConfirm() {
@@ -799,13 +1070,14 @@ async function toggleClock() {
   var dateStr = dateToStr(now);
 
   var openEntry = state.entries.find(function(e) { return e.employeeId === emp.id && !e.timeOut; });
+  var justArrived = !openEntry;
   if (openEntry) {
     openEntry.timeOut = timeStr;
   } else {
     state.entries.push({ id: 'entry_' + Date.now(), employeeId: emp.id, name: emp.name, date: dateStr, timeIn: timeStr, timeOut: null });
   }
   await saveData();
-  openClockScreen(emp);
+  openClockScreen(emp, justArrived ? 'arrival' : 'departure');
   renderEmployeeGrid();
 }
 
