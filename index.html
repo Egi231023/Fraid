@@ -8,42 +8,64 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fraid">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Fraid – Dochádzka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --espresso: #3A211F;
-    --cream: #FBF4E8;
-    --terracotta: #C87F5A;
-    --terracotta-deep: #A05F3D;
-    --ink: #2C1B14;
-    --muted: #8A7B72;
-    --green: #4C7A4C;
-    --red: #B5453A;
+    --espresso: #3A2620;
+    --espresso-deep: #2A1B17;
+    --cream: #FAF3E9;
+    --cream-soft: #FFFCF8;
+    --terracotta: #C97F53;
+    --terracotta-deep: #A5623C;
+    --gold: #D9A85C;
+    --ink: #2E211B;
+    --muted: #93857A;
+    --line: #EDE2D3;
+    --green: #4F8055;
+    --green-soft: #E6F0E5;
+    --red: #B34B3C;
+    --red-soft: #FBEAE6;
+    --radius: 18px;
+    --shadow: 0 4px 18px rgba(58,38,32,0.08);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     height: 100%;
-    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
     background: var(--cream);
     color: var(--ink);
     overflow: hidden;
     user-select: none;
+    font-size: clamp(14px, 3.6vw, 17px);
   }
-  #app { height: 100vh; display: flex; flex-direction: column; }
+  #app {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 
-  .screen { flex: 1; display: none; flex-direction: column; padding: 24px; overflow-y: auto; }
+  .screen { flex: 1; display: none; flex-direction: column; padding: 4vw 5vw; overflow-y: auto; }
   .screen.active { display: flex; }
 
   .topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 16px;
+    padding-bottom: 18px;
   }
-  .logo { font-size: 22px; font-weight: 700; color: var(--espresso); }
+  .logo { font-family: 'Fraunces', serif; font-size: clamp(19px, 5.5vw, 22px); font-weight: 600; color: var(--espresso); letter-spacing: -0.2px; }
   .icon-btn {
-    background: none; border: none; font-size: 22px; cursor: pointer;
-    color: var(--muted); padding: 8px;
+    background: #fff; border: none; font-size: 18px; cursor: pointer;
+    color: var(--muted); padding: 10px 12px; border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(58,33,31,0.06);
   }
 
   .tabbar {
@@ -70,28 +92,30 @@
   .employee-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 16px;
+    gap: 12px;
     margin-top: 8px;
   }
   .employee-card {
-    background: #fff;
-    border: 2px solid rgba(58,33,31,0.08);
+    background: var(--cream-soft);
+    border: 1px solid var(--line);
     border-radius: 16px;
     padding: 22px 12px;
     text-align: center;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.1s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(58,38,32,0.04);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
   .employee-card:active { transform: scale(0.96); }
   .employee-card.working {
     border-color: var(--green);
-    background: #EEF5EE;
+    background: var(--green-soft);
+    box-shadow: 0 4px 14px rgba(79,128,85,0.15);
   }
   .employee-card .status-dot {
     display: inline-block;
-    width: 8px; height: 8px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     background: var(--green);
     margin-right: 6px;
@@ -107,9 +131,9 @@
     text-align: center;
   }
 
-  .pin-display { display: flex; gap: 14px; margin: 24px 0; }
+  .pin-display { display: flex; gap: 3.5vw; margin: 6vw 0; }
   .pin-dot {
-    width: 18px; height: 18px;
+    width: clamp(14px, 4vw, 20px); height: clamp(14px, 4vw, 20px);
     border-radius: 50%;
     border: 2px solid var(--espresso);
     background: transparent;
@@ -118,42 +142,43 @@
 
   .keypad {
     display: grid;
-    grid-template-columns: repeat(3, 76px);
-    gap: 16px;
+    grid-template-columns: repeat(3, clamp(56px, 18vw, 76px));
+    gap: clamp(10px, 3.5vw, 16px);
     margin-top: 8px;
   }
   .key-btn {
-    width: 76px; height: 76px;
+    width: clamp(56px, 18vw, 76px); height: clamp(56px, 18vw, 76px);
     border-radius: 50%;
     border: none;
-    background: #fff;
-    font-size: 26px;
+    background: var(--cream-soft);
+    font-size: clamp(19px, 5.5vw, 26px);
     font-weight: 600;
     color: var(--ink);
-    box-shadow: 0 2px 8px rgba(58,33,31,0.1);
+    box-shadow: 0 2px 8px rgba(58,38,32,0.07);
     cursor: pointer;
   }
-  .key-btn:active { background: #F0E6D8; }
-  .key-btn.action { background: transparent; box-shadow: none; color: var(--muted); font-size: 16px; }
+  .key-btn:active { background: var(--line); }
+  .key-btn.action { background: transparent; box-shadow: none; color: var(--muted); font-size: clamp(13px, 3.6vw, 16px); }
 
-  .name-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
-  .sub-title { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+  .name-title { font-family: 'Fraunces', serif; font-size: clamp(21px, 6vw, 27px); font-weight: 600; margin-bottom: 6px; }
+  .sub-title { font-size: clamp(13px, 3.6vw, 15px); color: var(--muted); margin-bottom: 4px; }
 
-  .clock-status { font-size: 17px; color: var(--muted); margin-bottom: 28px; }
+  .clock-status { font-size: clamp(14px, 4vw, 17px); color: var(--muted); margin-bottom: 6vw; }
   .clock-status.working { color: var(--green); font-weight: 600; }
 
   .big-btn {
-    width: 200px; height: 200px;
+    width: clamp(150px, 45vw, 200px); height: clamp(150px, 45vw, 200px);
     border-radius: 50%;
     border: none;
-    font-size: 20px;
+    font-size: clamp(16px, 4.6vw, 20px);
     font-weight: 700;
+    letter-spacing: 0.5px;
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 10px 24px rgba(58,33,31,0.2);
+    box-shadow: 0 12px 28px rgba(58,38,32,0.22);
   }
-  .big-btn.in { background: var(--green); }
-  .big-btn.out { background: var(--red); }
+  .big-btn.in { background: linear-gradient(160deg, #5B9161, var(--green)); }
+  .big-btn.out { background: linear-gradient(160deg, #C4594A, var(--red)); }
   .big-btn:active { transform: scale(0.97); }
 
   .secondary-link {
@@ -183,7 +208,7 @@
   }
   .modal-overlay.active { display: flex; }
   .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 90%; max-width: 360px; }
-  .modal-box h3 { margin-bottom: 16px; font-size: 19px; }
+  .modal-box h3 { font-family: 'Fraunces', serif; margin-bottom: 16px; font-size: 20px; font-weight: 600; }
   .modal-box input {
     width: 100%; padding: 14px; font-size: 16px;
     border: 1px solid rgba(58,33,31,0.2); border-radius: 8px; margin-bottom: 12px;
@@ -194,32 +219,51 @@
   .modal-btn.secondary { background: #EFE6D8; color: var(--ink); }
   .modal-btn.danger { background: var(--red); color: #fff; }
 
-  .admin-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .admin-subtabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .admin-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .admin-subtabs { display: flex; gap: 6px; margin-bottom: 20px; background: #F0E6D8; border-radius: 12px; padding: 4px; }
   .admin-subtab {
-    padding: 9px 16px; border-radius: 8px; border: 1px solid rgba(58,33,31,0.15);
-    background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--muted);
+    flex: 1; padding: 10px 8px; border-radius: 9px; border: none;
+    background: transparent; font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--muted);
   }
-  .admin-subtab.active { background: var(--espresso); color: #fff; border-color: var(--espresso); }
+  .admin-subtab.active { background: #fff; color: var(--espresso); box-shadow: 0 2px 6px rgba(58,33,31,0.1); }
 
-  .week-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-  .week-nav button { background: #fff; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
-  .week-label { font-size: 15px; font-weight: 600; color: var(--muted); }
+  .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; background: #fff; border-radius: 12px; padding: 8px; box-shadow: 0 2px 8px rgba(58,33,31,0.05); }
+  .week-nav button { background: var(--cream); border: none; border-radius: 8px; padding: 9px 15px; font-size: 14px; font-weight: 600; color: var(--espresso); cursor: pointer; }
+  .week-label { font-size: 14px; font-weight: 700; color: var(--espresso); }
+
+  .download-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .download-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex: 1; padding: 12px; margin-bottom: 0;
+    background: var(--espresso); color: #fff; border: none; border-radius: 10px;
+    font-size: 13.5px; font-weight: 700; cursor: pointer;
+  }
+  .download-btn.secondary { background: var(--terracotta); }
+  .download-btn:active { opacity: 0.85; }
 
   table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
-  th, td { padding: 10px 12px; text-align: left; font-size: 13.5px; border-bottom: 1px solid rgba(58,33,31,0.08); }
-  th { background: #F0E6D8; font-weight: 700; color: var(--espresso); }
+  th, td { padding: 11px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(58,33,31,0.06); }
+  th { background: var(--cream); font-weight: 700; color: var(--espresso); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+  tr:last-child td { border-bottom: none; }
 
-  .emp-section { margin-bottom: 28px; }
-  .emp-name-header { font-size: 16px; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
-  .emp-total { font-size: 14px; color: var(--terracotta-deep); font-weight: 700; }
+  .emp-section {
+    margin-bottom: 20px; background: #fff; border-radius: 14px; padding: 16px;
+    box-shadow: 0 2px 10px rgba(58,33,31,0.06);
+  }
+  .emp-section table { box-shadow: none; }
+  .emp-name-header { font-size: 15.5px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
+  .emp-total {
+    font-size: 12.5px; color: var(--terracotta-deep); font-weight: 700;
+    background: #FBEAD9; padding: 3px 10px; border-radius: 999px;
+  }
 
-  .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
+  .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; line-height: 1.5; }
 
-  .manage-list { display: flex; flex-direction: column; gap: 10px; }
+  .manage-list { display: flex; flex-direction: column; gap: 8px; }
   .manage-row {
     display: flex; justify-content: space-between; align-items: center;
-    background: #fff; padding: 14px 16px; border-radius: 10px;
+    background: #fff; padding: 14px 16px; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(58,33,31,0.05);
   }
   .manage-row-name { font-weight: 600; }
   .manage-row-pin { font-size: 13px; color: var(--muted); margin-left: 8px; }
@@ -244,6 +288,12 @@
   .shift-date { font-weight: 700; }
   .shift-note { font-size: 13px; color: var(--muted); }
 
+  .type-select { display: flex; gap: 8px; margin-bottom: 12px; }
+  .type-opt {
+    flex: 1; padding: 11px; border-radius: 8px; border: 1.5px solid rgba(58,33,31,0.15);
+    background: #fff; font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; text-align: center;
+  }
+  .type-opt.active { border-color: var(--terracotta); background: #FBF0E6; color: var(--terracotta-deep); }
   .shift-badge {
     display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
     border-radius: 999px; margin-left: 8px;
@@ -251,8 +301,61 @@
   .shift-badge.full { background: #DCEEDC; color: var(--green); }
   .shift-badge.half { background: #FBEAD9; color: var(--terracotta-deep); }
 
+  /* Mini week overview on home screen - day card carousel */
+  .mini-week-card {
+    background: var(--cream-soft);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+  .mini-week-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  }
+  .mini-week-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--espresso); }
+  .mini-week-nav { display: flex; gap: 6px; align-items: center; }
+  .mini-nav-btn {
+    background: var(--cream); border: none; border-radius: 8px; width: 28px; height: 28px;
+    font-size: 14px; cursor: pointer; color: var(--espresso);
+  }
+  .mini-nav-btn:active { background: var(--line); }
+
+  .day-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .day-strip::-webkit-scrollbar { display: none; }
+  .day-card {
+    flex: 0 0 auto;
+    min-width: 78px;
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .day-card.today { background: var(--espresso); }
+  .day-card.today .day-card-dow, .day-card.today .day-card-num { color: var(--cream); }
+  .day-card-dow { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .day-card-num { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; color: var(--ink); margin: 2px 0 8px; }
+  .day-card-people { display: flex; flex-direction: column; gap: 4px; }
+  .day-pill {
+    font-size: 10.5px; font-weight: 700; padding: 3px 6px; border-radius: 999px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .day-pill.full { background: var(--green-soft); color: var(--green); }
+  .day-pill.half { background: #FBEAD9; color: var(--terracotta-deep); }
+  .day-card-empty { font-size: 10.5px; color: var(--muted); opacity: 0.6; padding: 3px 0; }
+
+  .mini-legend { display: flex; gap: 14px; margin-top: 14px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+  .mini-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
   .generator-card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 22px; }
-  .generator-card h4 { font-size: 15px; margin-bottom: 4px; }
+  .generator-card h4 { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 4px; font-weight: 600; }
   .generator-card .gen-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
   .gen-checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .gen-check-row {
@@ -265,48 +368,6 @@
   .gen-week-nav .gen-week-label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
   .gen-btn { width: 100%; padding: 13px; background: var(--espresso); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
   .gen-btn:disabled { opacity: 0.5; }
-
-  .mini-week-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(58,33,31,0.06);
-  }
-  .mini-week-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-  }
-  .mini-week-title { font-size: 14px; font-weight: 700; color: var(--espresso); }
-  .mini-week-nav { display: flex; gap: 6px; align-items: center; }
-  .mini-nav-btn {
-    background: #F0E6D8; border: none; border-radius: 6px; width: 26px; height: 26px;
-    font-size: 13px; cursor: pointer; color: var(--espresso);
-  }
-  .mini-grid {
-    display: grid;
-    grid-template-columns: 74px repeat(7, 1fr);
-    gap: 4px;
-    font-size: 11px;
-  }
-  .mini-day-head {
-    text-align: center; font-weight: 700; color: var(--muted);
-    padding: 4px 0;
-  }
-  .mini-day-head .dnum { display: block; font-size: 10px; font-weight: 500; color: var(--muted); }
-  .mini-day-head.today { color: var(--terracotta-deep); }
-  .mini-row-name {
-    font-size: 12px; font-weight: 600; display: flex; align-items: center;
-    padding-right: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .mini-cell {
-    height: 26px; border-radius: 6px; background: #F2ECE2;
-    position: relative; overflow: hidden;
-  }
-  .mini-cell.full { background: var(--green); }
-  .mini-cell.half-am { background: var(--terracotta); }
-  .mini-legend { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
-  .mini-legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -328,11 +389,10 @@
           <button class="mini-nav-btn" onclick="changeMiniWeek(1)">›</button>
         </div>
       </div>
-      <div id="mini-grid" class="mini-grid"></div>
+      <div id="mini-grid" class="day-strip"></div>
       <div class="mini-legend">
         <span><span class="legend-dot" style="background:var(--green);"></span> Celý deň</span>
         <span><span class="legend-dot" style="background:var(--terracotta);"></span> Vlastný čas</span>
-        <span><span class="legend-dot" style="background:#F2ECE2;"></span> Voľno</span>
       </div>
     </div>
     <div class="tabbar">
@@ -365,7 +425,7 @@
     </div>
   </div>
 
-  <!-- MY HISTORY SCREEN -->
+  <!-- MY HISTORY SCREEN (employee, own data only) -->
   <div class="screen" id="screen-my-history">
     <div class="admin-header">
       <button class="icon-btn" onclick="backToClockScreen()">← Späť</button>
@@ -418,6 +478,10 @@
         <button onclick="changeWeek(-1)">‹ Predch.</button>
         <div class="week-label" id="week-label">Týždeň</div>
         <button onclick="changeWeek(1)">Ďalší ›</button>
+      </div>
+      <div class="download-row">
+        <button class="download-btn" onclick="downloadWeekCsv()">⬇️ Týždeň</button>
+        <button class="download-btn secondary" onclick="downloadMonthCsv()">⬇️ Celý mesiac</button>
       </div>
       <div id="admin-content"></div>
     </div>
@@ -482,11 +546,12 @@ var ADMIN_PIN = '2310';
 var state = { employees: [], entries: [], shifts: [] };
 var currentEmployee = null;
 var pinBuffer = '';
-var pinPurpose = 'clock';
+var pinPurpose = 'clock'; // 'clock' or after-pin destination
 var adminWeekOffset = 0;
 var myWeekOffset = 0;
 var homeTab = 'dochadzka';
 var miniWeekOffset = 0;
+var selectedShiftType = 'full';
 var genWeekOffset = 0;
 
 async function loadData() {
@@ -499,8 +564,8 @@ async function loadData() {
       if (!state.employees) state.employees = [];
       if (!state.entries) state.entries = [];
     } else {
-      var insertRes = await sb.from('fraid_data').insert({ id: ROW_ID, value: state });
-      if (insertRes.error) throw insertRes.error;
+      // riadok ešte neexistuje, vytvor ho prázdny
+      await sb.from('fraid_data').insert({ id: ROW_ID, value: state });
     }
   } catch (e) {
     console.error('Chyba pri načítaní', e);
@@ -681,7 +746,9 @@ function openClockScreen(emp) {
   showScreen('screen-clock');
 }
 
-function backToClockScreen() { openClockScreen(currentEmployee); }
+function backToClockScreen() {
+  openClockScreen(currentEmployee);
+}
 
 async function toggleClock() {
   var emp = currentEmployee;
@@ -700,6 +767,7 @@ async function toggleClock() {
   renderEmployeeGrid();
 }
 
+// ---- MY HISTORY (employee's own attendance only) ----
 function openMyHistory() {
   myWeekOffset = 0;
   document.getElementById('my-history-title').textContent = currentEmployee.name + ' – môj prehľad';
@@ -712,7 +780,9 @@ function renderMyHistory() {
   var range = getWeekRange(myWeekOffset);
   document.getElementById('my-week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
   var days = [];
-  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d);
+  }
   var totalHours = 0;
   var rows = days.map(function(day) {
     var dStr = dateToStr(day);
@@ -727,6 +797,7 @@ function renderMyHistory() {
     '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
+// ---- SHIFTS (employee's own) ----
 function openShiftsScreen(emp) {
   currentEmployee = emp;
   document.getElementById('shifts-title').textContent = emp.name + ' – moje zmeny';
@@ -797,7 +868,9 @@ async function addShift() {
   renderMiniGrid();
 }
 
-function shiftTimeLabel(s) { return s.startTime + '–' + s.endTime; }
+function shiftTimeLabel(s) {
+  return s.startTime + '–' + s.endTime;
+}
 
 function renderShiftList() {
   var mine = state.shifts.filter(function(s) { return s.employeeId === currentEmployee.id; });
@@ -814,6 +887,7 @@ function renderShiftList() {
   }).join('');
 }
 
+// ---- ADMIN ----
 function openAdminPinModal() { openModal('modal-admin-pin'); }
 function checkAdminPin() {
   var val = document.getElementById('admin-pin-input').value;
@@ -883,26 +957,28 @@ function renderMiniGrid() {
   var todayStr = dateToStr(new Date());
   var dayNames = ['Po','Ut','St','Št','Pi','So','Ne'];
 
-  var html = '<div class="corner"></div>';
+  var html = '';
   days.forEach(function(d, idx) {
     var isToday = dateToStr(d) === todayStr;
-    html += '<div class="mini-day-head' + (isToday ? ' today' : '') + '">' + dayNames[idx] + '<span class="dnum">' + d.getDate() + '.' + (d.getMonth()+1) + '.</span></div>';
-  });
+    var dStr = dateToStr(d);
+    var shiftsToday = state.shifts.filter(function(s) { return s.date === dStr; });
 
-  if (state.employees.length === 0) {
-    gridEl.innerHTML = html;
-    return;
-  }
+    var peopleHtml = '';
+    if (shiftsToday.length === 0) {
+      peopleHtml = '<div class="day-card-empty">voľno</div>';
+    } else {
+      shiftsToday.forEach(function(s) {
+        var pillClass = s.isFullDay ? 'full' : 'half';
+        var firstName = s.name.split(' ')[0];
+        peopleHtml += '<div class="day-pill ' + pillClass + '" title="' + s.name + ' ' + shiftTimeLabel(s) + '">' + firstName + '</div>';
+      });
+    }
 
-  state.employees.forEach(function(emp) {
-    html += '<div class="mini-row-name">' + emp.name + '</div>';
-    days.forEach(function(d) {
-      var dStr = dateToStr(d);
-      var shift = state.shifts.find(function(s) { return s.employeeId === emp.id && s.date === dStr; });
-      var cellClass = 'mini-cell';
-      if (shift) { cellClass += shift.isFullDay ? ' full' : ' half-am'; }
-      html += '<div class="' + cellClass + '" title="' + (shift ? emp.name + ' - ' + shiftTimeLabel(shift) : '') + '"></div>';
-    });
+    html += '<div class="day-card' + (isToday ? ' today' : '') + '">' +
+      '<div class="day-card-dow">' + dayNames[idx] + '</div>' +
+      '<div class="day-card-num">' + d.getDate() + '.' + (d.getMonth()+1) + '.</div>' +
+      '<div class="day-card-people">' + peopleHtml + '</div>' +
+      '</div>';
   });
 
   gridEl.innerHTML = html;
@@ -939,6 +1015,65 @@ function hoursBetween(timeIn, timeOut) {
   var diff = minutesOut - minutesIn;
   if (diff < 0) diff += 24*60;
   return diff / 60;
+}
+
+function downloadWeekCsv() {
+  var range = getWeekRange(adminWeekOffset);
+  var days = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
+  var filename = 'fraid-hodiny_tyzden_' + dateToStr(range.start) + '_' + dateToStr(range.end) + '.csv';
+  triggerCsvDownload(days, filename);
+}
+
+function downloadMonthCsv() {
+  var range = getWeekRange(adminWeekOffset);
+  var year = range.start.getFullYear();
+  var month = range.start.getMonth(); // mesiac podľa práve zobrazeného týždňa
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var days = [];
+  for (var i = 1; i <= daysInMonth; i++) { days.push(new Date(year, month, i)); }
+  var monthNames = ['januar','februar','marec','april','maj','jun','jul','august','september','oktober','november','december'];
+  var filename = 'fraid-hodiny_mesiac_' + monthNames[month] + '_' + year + '.csv';
+  triggerCsvDownload(days, filename);
+}
+
+function triggerCsvDownload(days, filename) {
+  var rows = [['Zamestnankyňa', 'Deň', 'Dátum', 'Príchod', 'Odchod', 'Hodiny']];
+  var dayNames = ['Ne','Po','Ut','St','Št','Pi','So'];
+
+  state.employees.forEach(function(emp) {
+    var empTotal = 0;
+    days.forEach(function(day) {
+      var dStr = dateToStr(day);
+      var entry = state.entries.find(function(e) { return e.employeeId === emp.id && e.date === dStr; });
+      var hrs = entry ? hoursBetween(entry.timeIn, entry.timeOut) : 0;
+      empTotal += hrs;
+      rows.push([
+        emp.name,
+        dayNames[day.getDay()],
+        fmtDateYear(day),
+        entry ? entry.timeIn : '',
+        entry && entry.timeOut ? entry.timeOut : '',
+        hrs > 0 ? hrs.toFixed(1) : ''
+      ]);
+    });
+    rows.push([emp.name + ' – SPOLU', '', '', '', '', empTotal.toFixed(1)]);
+    rows.push(['', '', '', '', '', '']);
+  });
+
+  var csvContent = rows.map(function(r) {
+    return r.map(function(cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(';');
+  }).join('\n');
+
+  var blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function renderAdmin() {
@@ -998,14 +1133,15 @@ async function generateRandomShifts() {
   var days = [];
   for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
 
+  // Odstráň predtým vygenerované zmeny pre tento týždeň (označené generated:true)
   var weekDateStrs = days.map(dateToStr);
   state.shifts = state.shifts.filter(function(s) {
     return !(s.generated && weekDateStrs.indexOf(s.date) !== -1);
   });
 
   days.forEach(function(d, idx) {
-    var dow = d.getDay();
-    if (dow === 0) return;
+    var dow = d.getDay(); // 0 = nedeľa, 6 = sobota
+    if (dow === 0) return; // nedeľa voľno
     var startTime = (dow === 6) ? '10:00' : '08:00';
     var endTime = (dow === 6) ? '14:00' : '16:00';
     var randomEmpId = checked[Math.floor(Math.random() * checked.length)];
@@ -1032,6 +1168,8 @@ function setupAppIcon() {
   var canvas = document.createElement('canvas');
   canvas.width = 192; canvas.height = 192;
   var ctx = canvas.getContext('2d');
+
+  // pozadie - espresso hnedá so zaoblenými rohmi
   var r = 40;
   ctx.fillStyle = '#3A211F';
   ctx.beginPath();
@@ -1043,11 +1181,13 @@ function setupAppIcon() {
   ctx.closePath();
   ctx.fill();
 
+  // šálka kávy - jednoduchý tvar
   ctx.strokeStyle = '#FBF4E8';
   ctx.lineWidth = 8;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
+  // telo šálky
   ctx.beginPath();
   ctx.moveTo(55, 80);
   ctx.lineTo(62, 140);
@@ -1058,10 +1198,12 @@ function setupAppIcon() {
   ctx.closePath();
   ctx.stroke();
 
+  // ucho šálky
   ctx.beginPath();
   ctx.arc(148, 110, 16, -1.1, 1.1);
   ctx.stroke();
 
+  // para
   ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.moveTo(78, 66);
