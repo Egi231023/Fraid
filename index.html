@@ -244,12 +244,6 @@
   .shift-date { font-weight: 700; }
   .shift-note { font-size: 13px; color: var(--muted); }
 
-  .type-select { display: flex; gap: 8px; margin-bottom: 12px; }
-  .type-opt {
-    flex: 1; padding: 11px; border-radius: 8px; border: 1.5px solid rgba(58,33,31,0.15);
-    background: #fff; font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; text-align: center;
-  }
-  .type-opt.active { border-color: var(--terracotta); background: #FBF0E6; color: var(--terracotta-deep); }
   .shift-badge {
     display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
     border-radius: 999px; margin-left: 8px;
@@ -257,7 +251,21 @@
   .shift-badge.full { background: #DCEEDC; color: var(--green); }
   .shift-badge.half { background: #FBEAD9; color: var(--terracotta-deep); }
 
-  /* Mini week overview on home screen */
+  .generator-card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 22px; }
+  .generator-card h4 { font-size: 15px; margin-bottom: 4px; }
+  .generator-card .gen-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+  .gen-checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .gen-check-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: var(--cream); border-radius: 8px; font-size: 14px; font-weight: 600;
+  }
+  .gen-check-row input { width: 18px; height: 18px; }
+  .gen-week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .gen-week-nav button { background: #F0E6D8; border: none; border-radius: 6px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  .gen-week-nav .gen-week-label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
+  .gen-btn { width: 100%; padding: 13px; background: var(--espresso); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .gen-btn:disabled { opacity: 0.5; }
+
   .mini-week-card {
     background: #fff;
     border-radius: 16px;
@@ -280,7 +288,6 @@
     gap: 4px;
     font-size: 11px;
   }
-  .mini-grid .corner { }
   .mini-day-head {
     text-align: center; font-weight: 700; color: var(--muted);
     padding: 4px 0;
@@ -296,26 +303,10 @@
     position: relative; overflow: hidden;
   }
   .mini-cell.full { background: var(--green); }
-  .mini-cell.half-am { background: linear-gradient(to bottom, var(--terracotta) 50%, #F2ECE2 50%); }
-  .mini-cell.half-pm { background: linear-gradient(to bottom, #F2ECE2 50%, var(--terracotta) 50%); }
+  .mini-cell.half-am { background: var(--terracotta); }
   .mini-legend { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
   .mini-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-
-  .generator-card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 22px; }
-  .generator-card h4 { font-size: 15px; margin-bottom: 4px; }
-  .generator-card .gen-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
-  .gen-checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-  .gen-check-row {
-    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-    background: var(--cream); border-radius: 8px; font-size: 14px; font-weight: 600;
-  }
-  .gen-check-row input { width: 18px; height: 18px; }
-  .gen-week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .gen-week-nav button { background: #F0E6D8; border: none; border-radius: 6px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
-  .gen-week-nav .gen-week-label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
-  .gen-btn { width: 100%; padding: 13px; background: var(--espresso); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
-  .gen-btn:disabled { opacity: 0.5; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -340,7 +331,7 @@
       <div id="mini-grid" class="mini-grid"></div>
       <div class="mini-legend">
         <span><span class="legend-dot" style="background:var(--green);"></span> Celý deň</span>
-        <span><span class="legend-dot" style="background:var(--terracotta);"></span> Pol dňa</span>
+        <span><span class="legend-dot" style="background:var(--terracotta);"></span> Vlastný čas</span>
         <span><span class="legend-dot" style="background:#F2ECE2;"></span> Voľno</span>
       </div>
     </div>
@@ -374,7 +365,7 @@
     </div>
   </div>
 
-  <!-- MY HISTORY SCREEN (employee, own data only) -->
+  <!-- MY HISTORY SCREEN -->
   <div class="screen" id="screen-my-history">
     <div class="admin-header">
       <button class="icon-btn" onclick="backToClockScreen()">← Späť</button>
@@ -491,12 +482,11 @@ var ADMIN_PIN = '2310';
 var state = { employees: [], entries: [], shifts: [] };
 var currentEmployee = null;
 var pinBuffer = '';
-var pinPurpose = 'clock'; // 'clock' or after-pin destination
+var pinPurpose = 'clock';
 var adminWeekOffset = 0;
 var myWeekOffset = 0;
 var homeTab = 'dochadzka';
 var miniWeekOffset = 0;
-var selectedShiftType = 'full';
 var genWeekOffset = 0;
 
 async function loadData() {
@@ -509,11 +499,12 @@ async function loadData() {
       if (!state.employees) state.employees = [];
       if (!state.entries) state.entries = [];
     } else {
-      // riadok ešte neexistuje, vytvor ho prázdny
-      await sb.from('fraid_data').insert({ id: ROW_ID, value: state });
+      var insertRes = await sb.from('fraid_data').insert({ id: ROW_ID, value: state });
+      if (insertRes.error) throw insertRes.error;
     }
   } catch (e) {
     console.error('Chyba pri načítaní', e);
+    alert('CHYBA pri načítaní: ' + (e.message || JSON.stringify(e)));
   }
   renderEmployeeGrid();
   renderMiniGrid();
@@ -525,6 +516,7 @@ async function saveData() {
     if (res.error) throw res.error;
   } catch (e) {
     console.error('Chyba pri ukladaní', e);
+    alert('CHYBA pri ukladaní: ' + (e.message || JSON.stringify(e)));
   }
 }
 
@@ -689,9 +681,7 @@ function openClockScreen(emp) {
   showScreen('screen-clock');
 }
 
-function backToClockScreen() {
-  openClockScreen(currentEmployee);
-}
+function backToClockScreen() { openClockScreen(currentEmployee); }
 
 async function toggleClock() {
   var emp = currentEmployee;
@@ -710,7 +700,6 @@ async function toggleClock() {
   renderEmployeeGrid();
 }
 
-// ---- MY HISTORY (employee's own attendance only) ----
 function openMyHistory() {
   myWeekOffset = 0;
   document.getElementById('my-history-title').textContent = currentEmployee.name + ' – môj prehľad';
@@ -723,9 +712,7 @@ function renderMyHistory() {
   var range = getWeekRange(myWeekOffset);
   document.getElementById('my-week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
   var days = [];
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d);
-  }
+  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
   var totalHours = 0;
   var rows = days.map(function(day) {
     var dStr = dateToStr(day);
@@ -740,7 +727,6 @@ function renderMyHistory() {
     '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
-// ---- SHIFTS (employee's own) ----
 function openShiftsScreen(emp) {
   currentEmployee = emp;
   document.getElementById('shifts-title').textContent = emp.name + ' – moje zmeny';
@@ -811,9 +797,7 @@ async function addShift() {
   renderMiniGrid();
 }
 
-function shiftTimeLabel(s) {
-  return s.startTime + '–' + s.endTime;
-}
+function shiftTimeLabel(s) { return s.startTime + '–' + s.endTime; }
 
 function renderShiftList() {
   var mine = state.shifts.filter(function(s) { return s.employeeId === currentEmployee.id; });
@@ -830,7 +814,6 @@ function renderShiftList() {
   }).join('');
 }
 
-// ---- ADMIN ----
 function openAdminPinModal() { openModal('modal-admin-pin'); }
 function checkAdminPin() {
   var val = document.getElementById('admin-pin-input').value;
@@ -908,8 +891,6 @@ function renderMiniGrid() {
 
   if (state.employees.length === 0) {
     gridEl.innerHTML = html;
-    gridEl.style.gridTemplateColumns = '74px repeat(7, 1fr)';
-    var empty = document.createElement('div');
     return;
   }
 
@@ -919,9 +900,7 @@ function renderMiniGrid() {
       var dStr = dateToStr(d);
       var shift = state.shifts.find(function(s) { return s.employeeId === emp.id && s.date === dStr; });
       var cellClass = 'mini-cell';
-      if (shift) {
-        cellClass += shift.isFullDay ? ' full' : ' half-am';
-      }
+      if (shift) { cellClass += shift.isFullDay ? ' full' : ' half-am'; }
       html += '<div class="' + cellClass + '" title="' + (shift ? emp.name + ' - ' + shiftTimeLabel(shift) : '') + '"></div>';
     });
   });
@@ -1019,15 +998,14 @@ async function generateRandomShifts() {
   var days = [];
   for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
 
-  // Odstráň predtým vygenerované zmeny pre tento týždeň (označené generated:true)
   var weekDateStrs = days.map(dateToStr);
   state.shifts = state.shifts.filter(function(s) {
     return !(s.generated && weekDateStrs.indexOf(s.date) !== -1);
   });
 
   days.forEach(function(d, idx) {
-    var dow = d.getDay(); // 0 = nedeľa, 6 = sobota
-    if (dow === 0) return; // nedeľa voľno
+    var dow = d.getDay();
+    if (dow === 0) return;
     var startTime = (dow === 6) ? '10:00' : '08:00';
     var endTime = (dow === 6) ? '14:00' : '16:00';
     var randomEmpId = checked[Math.floor(Math.random() * checked.length)];
@@ -1054,8 +1032,6 @@ function setupAppIcon() {
   var canvas = document.createElement('canvas');
   canvas.width = 192; canvas.height = 192;
   var ctx = canvas.getContext('2d');
-
-  // pozadie - espresso hnedá so zaoblenými rohmi
   var r = 40;
   ctx.fillStyle = '#3A211F';
   ctx.beginPath();
@@ -1067,13 +1043,11 @@ function setupAppIcon() {
   ctx.closePath();
   ctx.fill();
 
-  // šálka kávy - jednoduchý tvar
   ctx.strokeStyle = '#FBF4E8';
   ctx.lineWidth = 8;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
-  // telo šálky
   ctx.beginPath();
   ctx.moveTo(55, 80);
   ctx.lineTo(62, 140);
@@ -1084,12 +1058,10 @@ function setupAppIcon() {
   ctx.closePath();
   ctx.stroke();
 
-  // ucho šálky
   ctx.beginPath();
   ctx.arc(148, 110, 16, -1.1, 1.1);
   ctx.stroke();
 
-  // para
   ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.moveTo(78, 66);
