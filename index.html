@@ -61,11 +61,58 @@
     align-items: center;
     padding-bottom: 18px;
   }
+  .topbar-actions { display: flex; gap: 8px; }
   .logo { font-family: 'Fraunces', serif; font-size: clamp(19px, 5.5vw, 22px); font-weight: 600; color: var(--espresso); letter-spacing: -0.2px; }
   .icon-btn {
     background: #fff; border: none; font-size: 18px; cursor: pointer;
     color: var(--muted); padding: 10px 12px; border-radius: 10px;
     box-shadow: 0 2px 8px rgba(58,33,31,0.06);
+    position: relative;
+  }
+  .notif-badge {
+    position: absolute; top: 2px; right: 2px;
+    background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
+    min-width: 15px; height: 15px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 340px;
+  }
+  .profile-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer;
+  }
+  .profile-avatar {
+    width: 76px; height: 76px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(58,38,32,0.15);
+    border: 2px solid transparent;
+    overflow: hidden;
+  }
+  .profile-tile:active .profile-avatar { border-color: var(--terracotta); }
+  .profile-avatar img { width: 80%; height: 80%; object-fit: contain; }
+  .profile-avatar.admin-avatar { background: var(--espresso); font-size: 32px; }
+  .profile-name { font-size: 13px; font-weight: 600; color: var(--ink); text-align: center; }
+
+  .modal-box-wide { max-width: 420px; }
+  .notes-list {
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 280px; overflow-y: auto; margin-bottom: 14px;
+  }
+  .note-item {
+    background: var(--cream); border-radius: 10px; padding: 10px 12px;
+  }
+  .note-author { font-size: 12.5px; font-weight: 700; color: var(--terracotta-deep); }
+  .note-time { font-size: 11px; color: var(--muted); margin-left: 6px; font-weight: 500; }
+  .note-text { font-size: 14px; color: var(--ink); margin-top: 3px; }
+  .note-textarea {
+    width: 100%; min-height: 70px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 10px;
+    font-size: 14px; font-family: inherit; resize: vertical;
   }
 
   .tabbar {
@@ -486,7 +533,10 @@
   <div class="screen active" id="screen-home">
     <div class="topbar">
       <div class="logo">☕ Fraid</div>
-      <button class="icon-btn" onclick="openAdminPinModal()">⚙️</button>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="openNotesBoard()">🔔<span class="notif-badge" id="notif-badge-home" style="display:none;"></span></button>
+        <button class="icon-btn" onclick="openAdminPinModal()">⚙️</button>
+      </div>
     </div>
     <div class="mini-week-card">
       <div class="mini-week-header">
@@ -507,6 +557,15 @@
       <button class="tab-btn" id="tab-zmeny" onclick="switchHomeTab('zmeny')">Zmeny</button>
     </div>
     <div id="employee-grid" class="employee-grid"></div>
+    <div class="secondary-link" style="text-align:center; margin-top:18px;" onclick="showProfilePicker()">🔄 Zmeniť profil zariadenia</div>
+  </div>
+
+  <!-- PROFILE PICKER (Netflix style) -->
+  <div class="screen" id="screen-profiles">
+    <div class="center-box">
+      <div class="name-title" style="margin-bottom:24px;">Kto používa appku?</div>
+      <div class="profile-grid" id="profile-grid"></div>
+    </div>
   </div>
 
   <!-- PIN ENTRY SCREEN -->
@@ -537,6 +596,7 @@
   <div class="screen" id="screen-clock">
     <div class="screen-topbar">
       <button class="back-circle" onclick="goHome()">‹</button>
+      <button class="icon-btn" style="margin-left:auto;" onclick="openNotesBoard()">🔔<span class="notif-badge" id="notif-badge-clock" style="display:none;"></span></button>
     </div>
     <div class="center-box">
       <div class="name-title" id="clock-emp-name">Meno</div>
@@ -718,6 +778,20 @@
       <button class="modal-btn secondary" onclick="closeModal('modal-edit-hours')">Zrušiť</button>
       <button class="modal-btn primary" onclick="saveEditedHours()">Uložiť</button>
     </div>
+    <button class="modal-btn danger" style="width:100%; margin-top:10px;" onclick="deleteEditedEntry()">🗑️ Vymazať celý záznam</button>
+  </div>
+</div>
+
+<!-- NOTES BOARD -->
+<div class="modal-overlay" id="modal-notes">
+  <div class="modal-box modal-box-wide">
+    <h3>🔔 Odkazy</h3>
+    <div class="notes-list" id="notes-list"></div>
+    <textarea id="note-input" class="note-textarea" placeholder="Napíš odkaz pre ostatných..." maxlength="300"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-notes')">Zavrieť</button>
+      <button class="modal-btn primary" onclick="sendNote()">Odoslať</button>
+    </div>
   </div>
 </div>
 
@@ -772,6 +846,7 @@ async function loadData() {
     alert('Nie si pripojený na internet 📶\n\nSkontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova).');
     renderEmployeeGrid();
     renderMiniGrid();
+    tryAutoEnterProfile();
     return;
   }
   try {
@@ -797,9 +872,12 @@ async function loadData() {
       alert('CHYBA pri načítaní:\n' + formatSupabaseError(e));
     }
   }
+  if (!state.notes) state.notes = [];
   await checkAutoClose();
   renderEmployeeGrid();
   renderMiniGrid();
+  updateNotifBadges();
+  tryAutoEnterProfile();
 }
 
 function formatSupabaseError(e) {
@@ -1653,6 +1731,14 @@ async function saveEditedHours() {
   renderAdmin();
 }
 
+async function deleteEditedEntry() {
+  if (!pendingEditEntryId) return;
+  state.entries = state.entries.filter(function(e) { return e.id !== pendingEditEntryId; });
+  await saveData();
+  closeModal('modal-edit-hours');
+  renderAdmin();
+}
+
 function renderAdmin() {
   var range = getWeekRange(adminWeekOffset);
   document.getElementById('week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
@@ -1826,6 +1912,117 @@ function setupAppIcon() {
   manifestLink.rel = 'manifest';
   manifestLink.href = manifestUrl;
   document.head.appendChild(manifestLink);
+}
+
+var DEVICE_PROFILE_KEY = 'fraid_device_profile';
+
+function getRememberedProfile() {
+  try { return localStorage.getItem(DEVICE_PROFILE_KEY); } catch (e) { return null; }
+}
+
+function setRememberedProfile(val) {
+  try { localStorage.setItem(DEVICE_PROFILE_KEY, val); } catch (e) {}
+}
+
+function clearRememberedProfile() {
+  try { localStorage.removeItem(DEVICE_PROFILE_KEY); } catch (e) {}
+}
+
+function showProfilePicker() {
+  var grid = document.getElementById('profile-grid');
+  var html = state.employees.map(function(emp) {
+    var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
+    var img = ANIMALS[animalKey].emojiHappy;
+    return '<div class="profile-tile" onclick="selectProfile(\'' + emp.id + '\')">' +
+      '<div class="profile-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + img + '" alt=""></div>' +
+      '<div class="profile-name">' + emp.name + '</div>' +
+    '</div>';
+  }).join('');
+  html += '<div class="profile-tile" onclick="selectAdminProfile()">' +
+    '<div class="profile-avatar admin-avatar">⚙️</div>' +
+    '<div class="profile-name">Admin</div>' +
+  '</div>';
+  grid.innerHTML = html;
+  showScreen('screen-profiles');
+}
+
+function selectProfile(empId) {
+  tapFeedback();
+  setRememberedProfile(empId);
+  var emp = state.employees.find(function(e) { return e.id === empId; });
+  if (emp) openPinScreen(emp, 'clock');
+}
+
+function selectAdminProfile() {
+  tapFeedback();
+  setRememberedProfile('admin');
+  showScreen('screen-home');
+}
+
+function tryAutoEnterProfile() {
+  var remembered = getRememberedProfile();
+  if (!remembered) {
+    showProfilePicker();
+    return;
+  }
+  if (remembered === 'admin') {
+    showScreen('screen-home');
+    return;
+  }
+  var emp = state.employees.find(function(e) { return e.id === remembered; });
+  if (emp) {
+    openPinScreen(emp, 'clock');
+  } else {
+    clearRememberedProfile();
+    showProfilePicker();
+  }
+}
+
+function openNotesBoard() {
+  tapFeedback();
+  renderNotesList();
+  openModal('modal-notes');
+}
+
+function renderNotesList() {
+  if (!state.notes) state.notes = [];
+  var list = document.getElementById('notes-list');
+  var sorted = state.notes.slice().sort(function(a, b) { return b.createdAt.localeCompare(a.createdAt); });
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="empty-state">Zatiaľ žiadne odkazy.</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(function(n) {
+    var d = new Date(n.createdAt);
+    var timeStr = d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '. ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    return '<div class="note-item"><span class="note-author">' + n.author + '</span><span class="note-time">' + timeStr + '</span><div class="note-text">' + n.text.replace(/</g, '&lt;') + '</div></div>';
+  }).join('');
+}
+
+async function sendNote() {
+  var textEl = document.getElementById('note-input');
+  var text = textEl.value.trim();
+  if (!text) return;
+  if (!state.notes) state.notes = [];
+  var authorName = currentEmployee ? currentEmployee.name : 'Admin';
+  state.notes.push({ id: 'note_' + Date.now(), author: authorName, text: text, createdAt: new Date().toISOString() });
+  if (state.notes.length > 50) state.notes = state.notes.slice(-50);
+  textEl.value = '';
+  await saveData();
+  renderNotesList();
+  updateNotifBadges();
+}
+
+function updateNotifBadges() {
+  if (!state.notes) state.notes = [];
+  var since = Date.now() - 24 * 60 * 60 * 1000;
+  var recent = state.notes.filter(function(n) { return new Date(n.createdAt).getTime() > since; }).length;
+  ['notif-badge-home', 'notif-badge-clock'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (recent > 0) { el.textContent = recent; el.style.display = 'flex'; }
+    else { el.style.display = 'none'; }
+  });
 }
 
 setupAppIcon();
