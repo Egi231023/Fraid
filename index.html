@@ -374,6 +374,7 @@
   .manage-row-name { font-weight: 600; }
   .manage-row-pin { font-size: 13px; color: var(--muted); margin-left: 8px; }
   .del-btn { background: var(--red); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+  .edit-hours-btn { background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px; }
   .add-btn-full {
     margin-top: 16px; background: var(--terracotta); color: #fff; border: none;
     padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
@@ -692,6 +693,34 @@
   </div>
 </div>
 
+<!-- DELETE EMPLOYEE CONFIRM -->
+<div class="modal-overlay" id="modal-delete-confirm">
+  <div class="modal-box">
+    <h3>Odstrániť zamestnankyňu?</h3>
+    <p style="color:var(--muted); font-size:14.5px; margin-bottom:18px;" id="delete-confirm-text"></p>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-delete-confirm')">Zrušiť</button>
+      <button class="modal-btn danger" onclick="removeEmployee()">Odstrániť natrvalo</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT HOURS MODAL -->
+<div class="modal-overlay" id="modal-edit-hours">
+  <div class="modal-box">
+    <h3 id="edit-hours-title">Upraviť zmenu</h3>
+    <label style="font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px;">Príchod</label>
+    <input type="time" id="edit-hours-in">
+    <label style="font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px; margin-top:4px;">Odchod</label>
+    <input type="time" id="edit-hours-out">
+    <div class="error-msg" id="edit-hours-error"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-edit-hours')">Zrušiť</button>
+      <button class="modal-btn primary" onclick="saveEditedHours()">Uložiť</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function playClick() {
   try {
@@ -896,7 +925,18 @@ async function addEmployee() {
   renderMiniGrid();
 }
 
-async function removeEmployee(id) {
+var pendingDeleteEmployeeId = null;
+
+function confirmDeleteEmployee(id, name) {
+  pendingDeleteEmployeeId = id;
+  document.getElementById('delete-confirm-text').textContent = 'Naozaj chceš natrvalo odstrániť "' + name + '"? Táto akcia sa nedá vrátiť späť.';
+  openModal('modal-delete-confirm');
+}
+
+async function removeEmployee() {
+  var id = pendingDeleteEmployeeId;
+  if (!id) return;
+  closeModal('modal-delete-confirm');
   state.employees = state.employees.filter(function(e) { return e.id !== id; });
   await saveData();
   renderManageList();
@@ -1417,7 +1457,7 @@ function renderManageList() {
     return;
   }
   listEl.innerHTML = state.employees.map(function(emp) {
-    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><button class="del-btn" onclick="removeEmployee(\'' + emp.id + '\')">Odstrániť</button></div>';
+    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><button class="del-btn" onclick="confirmDeleteEmployee(\'' + emp.id + '\', \'' + emp.name.replace(/'/g, "\\'") + '\')">Odstrániť</button></div>';
   }).join('');
 }
 
@@ -1581,6 +1621,38 @@ function triggerCsvDownload(days, filename) {
   URL.revokeObjectURL(url);
 }
 
+var pendingEditEntryId = null;
+
+function openEditHours(entryId) {
+  var entry = state.entries.find(function(e) { return e.id === entryId; });
+  if (!entry) return;
+  pendingEditEntryId = entryId;
+  document.getElementById('edit-hours-title').textContent = entry.name + ' – ' + fmtDateYear(new Date(entry.date + 'T00:00:00'));
+  document.getElementById('edit-hours-in').value = entry.timeIn || '';
+  document.getElementById('edit-hours-out').value = entry.timeOut || '';
+  document.getElementById('edit-hours-error').textContent = '';
+  openModal('modal-edit-hours');
+}
+
+async function saveEditedHours() {
+  var entry = state.entries.find(function(e) { return e.id === pendingEditEntryId; });
+  if (!entry) return;
+  var newIn = document.getElementById('edit-hours-in').value;
+  var newOut = document.getElementById('edit-hours-out').value;
+  var errEl = document.getElementById('edit-hours-error');
+  if (!newIn) { errEl.textContent = 'Zadaj čas príchodu.'; return; }
+  if (newOut && timeToMinutes(newOut) <= timeToMinutes(newIn)) {
+    errEl.textContent = 'Odchod musí byť neskôr ako príchod.';
+    return;
+  }
+  entry.timeIn = newIn;
+  entry.timeOut = newOut || null;
+  delete entry.autoClosedByCutoff;
+  await saveData();
+  closeModal('modal-edit-hours');
+  renderAdmin();
+}
+
 function renderAdmin() {
   var range = getWeekRange(adminWeekOffset);
   document.getElementById('week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
@@ -1604,11 +1676,12 @@ function renderAdmin() {
       totalHours += hrs;
       var dayName = ['Ne','Po','Ut','St','Št','Pi','So'][day.getDay()];
       var outText = entry && entry.timeOut ? entry.timeOut + (entry.autoClosedByCutoff ? ' ⏰' : '') : (entry ? '(v práci)' : '—');
-      return '<tr><td>' + dayName + ' ' + fmtDateYear(day) + '</td><td>' + (entry ? entry.timeIn : '—') + '</td><td' + (entry && entry.autoClosedByCutoff ? ' title="Automaticky ukončené o ' + entry.timeOut + '"' : '') + '>' + outText + '</td><td>' + (hrs > 0 ? hrs.toFixed(1) + ' h' : '—') + '</td></tr>';
+      var editBtn = entry ? '<button class="edit-hours-btn" onclick="openEditHours(\'' + entry.id + '\')">✏️</button>' : '';
+      return '<tr><td>' + dayName + ' ' + fmtDateYear(day) + '</td><td>' + (entry ? entry.timeIn : '—') + '</td><td' + (entry && entry.autoClosedByCutoff ? ' title="Automaticky ukončené o ' + entry.timeOut + '"' : '') + '>' + outText + '</td><td>' + (hrs > 0 ? hrs.toFixed(1) + ' h' : '—') + '</td><td>' + editBtn + '</td></tr>';
     }).join('');
     section.innerHTML =
       '<div class="emp-name-header"><span>' + emp.name + '</span><span class="emp-total">' + totalHours.toFixed(1) + ' h spolu</span></div>' +
-      '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
     content.appendChild(section);
   });
 }
