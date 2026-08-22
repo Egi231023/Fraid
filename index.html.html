@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3A211F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fraid">
+<title>Fraid – Dochádzka</title>
+<style>
+  :root {
+    --espresso: #3A211F;
+    --cream: #FBF4E8;
+    --terracotta: #C87F5A;
+    --terracotta-deep: #A05F3D;
+    --ink: #2C1B14;
+    --muted: #8A7B72;
+    --green: #4C7A4C;
+    --red: #B5453A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    overflow: hidden;
+    user-select: none;
+  }
+  #app { height: 100vh; display: flex; flex-direction: column; }
+
+  .screen { flex: 1; display: none; flex-direction: column; padding: 24px; overflow-y: auto; }
+  .screen.active { display: flex; }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+  }
+  .logo { font-size: 22px; font-weight: 700; color: var(--espresso); }
+  .icon-btn {
+    background: none; border: none; font-size: 22px; cursor: pointer;
+    color: var(--muted); padding: 8px;
+  }
+
+  .tabbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: #F0E6D8;
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .tab-btn.active { background: #fff; color: var(--espresso); box-shadow: 0 2px 6px rgba(58,33,31,0.1); }
+
+  .employee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .employee-card {
+    background: #fff;
+    border: 2px solid rgba(58,33,31,0.08);
+    border-radius: 16px;
+    padding: 22px 12px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, border-color 0.2s ease;
+  }
+  .employee-card:active { transform: scale(0.96); }
+  .employee-card.working {
+    border-color: var(--green);
+    background: #EEF5EE;
+  }
+  .employee-card .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .center-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pin-display { display: flex; gap: 14px; margin: 24px 0; }
+  .pin-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--espresso);
+    background: transparent;
+  }
+  .pin-dot.filled { background: var(--espresso); }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 76px);
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .key-btn {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: 0 2px 8px rgba(58,33,31,0.1);
+    cursor: pointer;
+  }
+  .key-btn:active { background: #F0E6D8; }
+  .key-btn.action { background: transparent; box-shadow: none; color: var(--muted); font-size: 16px; }
+
+  .name-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .sub-title { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+
+  .clock-status { font-size: 17px; color: var(--muted); margin-bottom: 28px; }
+  .clock-status.working { color: var(--green); font-weight: 600; }
+
+  .big-btn {
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(58,33,31,0.2);
+  }
+  .big-btn.in { background: var(--green); }
+  .big-btn.out { background: var(--red); }
+  .big-btn:active { transform: scale(0.97); }
+
+  .secondary-link {
+    margin-top: 20px;
+    color: var(--terracotta-deep);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .back-link {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 15px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .error-msg { color: var(--red); font-size: 14px; margin-top: 10px; height: 18px; }
+
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(44,27,20,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 90%; max-width: 360px; }
+  .modal-box h3 { margin-bottom: 16px; font-size: 19px; }
+  .modal-box input {
+    width: 100%; padding: 14px; font-size: 16px;
+    border: 1px solid rgba(58,33,31,0.2); border-radius: 8px; margin-bottom: 12px;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .modal-btn { flex: 1; padding: 13px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .modal-btn.primary { background: var(--terracotta); color: #fff; }
+  .modal-btn.secondary { background: #EFE6D8; color: var(--ink); }
+  .modal-btn.danger { background: var(--red); color: #fff; }
+
+  .admin-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .admin-subtabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .admin-subtab {
+    padding: 9px 16px; border-radius: 8px; border: 1px solid rgba(58,33,31,0.15);
+    background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--muted);
+  }
+  .admin-subtab.active { background: var(--espresso); color: #fff; border-color: var(--espresso); }
+
+  .week-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .week-nav button { background: #fff; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
+  .week-label { font-size: 15px; font-weight: 600; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
+  th, td { padding: 10px 12px; text-align: left; font-size: 13.5px; border-bottom: 1px solid rgba(58,33,31,0.08); }
+  th { background: #F0E6D8; font-weight: 700; color: var(--espresso); }
+
+  .emp-section { margin-bottom: 28px; }
+  .emp-name-header { font-size: 16px; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .emp-total { font-size: 14px; color: var(--terracotta-deep); font-weight: 700; }
+
+  .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
+
+  .manage-list { display: flex; flex-direction: column; gap: 10px; }
+  .manage-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fff; padding: 14px 16px; border-radius: 10px;
+  }
+  .manage-row-name { font-weight: 600; }
+  .manage-row-pin { font-size: 13px; color: var(--muted); margin-left: 8px; }
+  .del-btn { background: var(--red); color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+  .add-btn-full {
+    margin-top: 16px; background: var(--terracotta); color: #fff; border: none;
+    padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+
+  .shift-form { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+  .shift-form label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+  .shift-form input { width: 100%; padding: 12px; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
+  .shift-form button { width: 100%; padding: 13px; background: var(--terracotta); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .fullday-check { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 14px; cursor: pointer; }
+  .fullday-check input { width: 18px; height: 18px; margin: 0; }
+
+  .shift-list { display: flex; flex-direction: column; gap: 8px; }
+  .shift-item {
+    background: #fff; padding: 14px 16px; border-radius: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .shift-date { font-weight: 700; }
+  .shift-note { font-size: 13px; color: var(--muted); }
+
+  .type-select { display: flex; gap: 8px; margin-bottom: 12px; }
+  .type-opt {
+    flex: 1; padding: 11px; border-radius: 8px; border: 1.5px solid rgba(58,33,31,0.15);
+    background: #fff; font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; text-align: center;
+  }
+  .type-opt.active { border-color: var(--terracotta); background: #FBF0E6; color: var(--terracotta-deep); }
+  .shift-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; margin-left: 8px;
+  }
+  .shift-badge.full { background: #DCEEDC; color: var(--green); }
+  .shift-badge.half { background: #FBEAD9; color: var(--terracotta-deep); }
+
+  /* Mini week overview on home screen */
+  .mini-week-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(58,33,31,0.06);
+  }
+  .mini-week-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  .mini-week-title { font-size: 14px; font-weight: 700; color: var(--espresso); }
+  .mini-week-nav { display: flex; gap: 6px; align-items: center; }
+  .mini-nav-btn {
+    background: #F0E6D8; border: none; border-radius: 6px; width: 26px; height: 26px;
+    font-size: 13px; cursor: pointer; color: var(--espresso);
+  }
+  .mini-grid {
+    display: grid;
+    grid-template-columns: 74px repeat(7, 1fr);
+    gap: 4px;
+    font-size: 11px;
+  }
+  .mini-grid .corner { }
+  .mini-day-head {
+    text-align: center; font-weight: 700; color: var(--muted);
+    padding: 4px 0;
+  }
+  .mini-day-head .dnum { display: block; font-size: 10px; font-weight: 500; color: var(--muted); }
+  .mini-day-head.today { color: var(--terracotta-deep); }
+  .mini-row-name {
+    font-size: 12px; font-weight: 600; display: flex; align-items: center;
+    padding-right: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mini-cell {
+    height: 26px; border-radius: 6px; background: #F2ECE2;
+    position: relative; overflow: hidden;
+  }
+  .mini-cell.full { background: var(--green); }
+  .mini-cell.half-am { background: linear-gradient(to bottom, var(--terracotta) 50%, #F2ECE2 50%); }
+  .mini-cell.half-pm { background: linear-gradient(to bottom, #F2ECE2 50%, var(--terracotta) 50%); }
+  .mini-legend { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .mini-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .generator-card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 22px; }
+  .generator-card h4 { font-size: 15px; margin-bottom: 4px; }
+  .generator-card .gen-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+  .gen-checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .gen-check-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: var(--cream); border-radius: 8px; font-size: 14px; font-weight: 600;
+  }
+  .gen-check-row input { width: 18px; height: 18px; }
+  .gen-week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .gen-week-nav button { background: #F0E6D8; border: none; border-radius: 6px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  .gen-week-nav .gen-week-label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
+  .gen-btn { width: 100%; padding: 13px; background: var(--espresso); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .gen-btn:disabled { opacity: 0.5; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="logo">☕ Fraid</div>
+      <button class="icon-btn" onclick="openAdminPinModal()">⚙️</button>
+    </div>
+    <div class="mini-week-card">
+      <div class="mini-week-header">
+        <div class="mini-week-title" id="mini-week-title">Kto pracuje tento týždeň</div>
+        <div class="mini-week-nav">
+          <button class="mini-nav-btn" onclick="changeMiniWeek(-1)">‹</button>
+          <button class="mini-nav-btn" onclick="changeMiniWeek(1)">›</button>
+        </div>
+      </div>
+      <div id="mini-grid" class="mini-grid"></div>
+      <div class="mini-legend">
+        <span><span class="legend-dot" style="background:var(--green);"></span> Celý deň</span>
+        <span><span class="legend-dot" style="background:var(--terracotta);"></span> Pol dňa</span>
+        <span><span class="legend-dot" style="background:#F2ECE2;"></span> Voľno</span>
+      </div>
+    </div>
+    <div class="tabbar">
+      <button class="tab-btn active" id="tab-dochadzka" onclick="switchHomeTab('dochadzka')">Dochádzka</button>
+      <button class="tab-btn" id="tab-zmeny" onclick="switchHomeTab('zmeny')">Zmeny</button>
+    </div>
+    <div id="employee-grid" class="employee-grid"></div>
+  </div>
+
+  <!-- PIN ENTRY SCREEN -->
+  <div class="screen" id="screen-pin">
+    <div class="center-box">
+      <div class="name-title" id="pin-emp-name">Meno</div>
+      <div class="sub-title">Zadaj svoj PIN kód</div>
+      <div class="pin-display" id="pin-display"></div>
+      <div class="error-msg" id="pin-error"></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="back-link" onclick="goHome()">← Späť</div>
+    </div>
+  </div>
+
+  <!-- CLOCK SCREEN -->
+  <div class="screen" id="screen-clock">
+    <div class="center-box">
+      <div class="name-title" id="clock-emp-name">Meno</div>
+      <div class="clock-status" id="clock-status">Momentálne: mimo práce</div>
+      <button class="big-btn in" id="clock-btn" onclick="toggleClock()">PRÍCHOD</button>
+      <div class="secondary-link" onclick="openMyHistory()">📋 Môj prehľad odpracovaných dní</div>
+      <div class="back-link" onclick="goHome()">← Späť</div>
+    </div>
+  </div>
+
+  <!-- MY HISTORY SCREEN (employee, own data only) -->
+  <div class="screen" id="screen-my-history">
+    <div class="admin-header">
+      <button class="icon-btn" onclick="backToClockScreen()">← Späť</button>
+      <div class="logo" style="font-size:19px;" id="my-history-title">Môj prehľad</div>
+    </div>
+    <div class="week-nav">
+      <button onclick="changeMyWeek(-1)">‹ Predch.</button>
+      <div class="week-label" id="my-week-label">Týždeň</div>
+      <button onclick="changeMyWeek(1)">Ďalší ›</button>
+    </div>
+    <div id="my-history-content"></div>
+  </div>
+
+  <!-- ZMENY (SHIFTS) - own only -->
+  <div class="screen" id="screen-shifts">
+    <div class="admin-header">
+      <button class="icon-btn" onclick="goHome()">← Späť</button>
+      <div class="logo" style="font-size:19px;" id="shifts-title">Moje zmeny</div>
+    </div>
+    <div class="shift-form">
+      <label>Dátum zmeny</label>
+      <input type="date" id="shift-date-input">
+      <label class="fullday-check"><input type="checkbox" id="fullday-checkbox" checked onchange="toggleFullDay()"> Celý deň (8:00–16:00)</label>
+      <div id="custom-time-row" style="display:none;">
+        <label>Od</label>
+        <input type="time" id="shift-start-input" value="08:00">
+        <label>Do</label>
+        <input type="time" id="shift-end-input" value="12:00">
+      </div>
+      <div class="error-msg" id="shift-error"></div>
+      <button onclick="addShift()">+ Pridať zmenu</button>
+    </div>
+    <div id="shift-list" class="shift-list"></div>
+  </div>
+
+  <!-- ADMIN SCREEN -->
+  <div class="screen" id="screen-admin">
+    <div class="admin-header">
+      <button class="icon-btn" onclick="goHome()">← Späť</button>
+      <div class="logo" style="font-size:19px;">Admin</div>
+    </div>
+    <div class="admin-subtabs">
+      <button class="admin-subtab active" id="admsub-hodiny" onclick="switchAdminSub('hodiny')">Hodiny</button>
+      <button class="admin-subtab" id="admsub-zamestnanci" onclick="switchAdminSub('zamestnanci')">Zamestnankyne</button>
+      <button class="admin-subtab" id="admsub-zmeny" onclick="switchAdminSub('zmeny')">Zmeny</button>
+    </div>
+
+    <div id="admin-hodiny-panel">
+      <div class="week-nav">
+        <button onclick="changeWeek(-1)">‹ Predch.</button>
+        <div class="week-label" id="week-label">Týždeň</div>
+        <button onclick="changeWeek(1)">Ďalší ›</button>
+      </div>
+      <div id="admin-content"></div>
+    </div>
+
+    <div id="admin-zamestnanci-panel" style="display:none;">
+      <div class="manage-list" id="manage-list"></div>
+      <button class="add-btn-full" onclick="openModal('modal-add-employee')">+ Pridať zamestnankyňu</button>
+    </div>
+
+    <div id="admin-zmeny-panel" style="display:none;">
+      <div class="generator-card">
+        <h4>🎲 Náhodné generovanie zmien</h4>
+        <div class="gen-sub">Po–Pi 8:00–16:00 · So 10:00–14:00 · Ne voľno. Zaškrtni koho zahrnúť.</div>
+        <div class="gen-checklist" id="gen-checklist"></div>
+        <div class="gen-week-nav">
+          <button onclick="changeGenWeek(-1)">‹</button>
+          <div class="gen-week-label" id="gen-week-label">Týždeň</div>
+          <button onclick="changeGenWeek(1)">›</button>
+        </div>
+        <button class="gen-btn" onclick="generateRandomShifts()">Vygenerovať náhodný rozpis</button>
+      </div>
+      <div id="admin-shifts-content"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD EMPLOYEE MODAL -->
+<div class="modal-overlay" id="modal-add-employee">
+  <div class="modal-box">
+    <h3>Pridať zamestnankyňu</h3>
+    <input type="text" id="new-emp-name" placeholder="Meno" maxlength="30">
+    <input type="text" id="new-emp-pin" placeholder="PIN (4 čísla)" maxlength="4" inputmode="numeric">
+    <div class="error-msg" id="add-emp-error"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-add-employee')">Zrušiť</button>
+      <button class="modal-btn primary" onclick="addEmployee()">Pridať</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PIN MODAL -->
+<div class="modal-overlay" id="modal-admin-pin">
+  <div class="modal-box">
+    <h3>Admin PIN</h3>
+    <input type="password" id="admin-pin-input" placeholder="PIN" maxlength="6" inputmode="numeric">
+    <div class="error-msg" id="admin-pin-error"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-admin-pin')">Zrušiť</button>
+      <button class="modal-btn primary" onclick="checkAdminPin()">Vstúpiť</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://arbvuovtqntagfpfqfgp.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_zMEBTDWawN76bzcyxPv7NA_dsJVsI-f';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var ROW_ID = 'fraid-main';
+
+var ADMIN_PIN = '2310';
+var state = { employees: [], entries: [], shifts: [] };
+var currentEmployee = null;
+var pinBuffer = '';
+var pinPurpose = 'clock'; // 'clock' or after-pin destination
+var adminWeekOffset = 0;
+var myWeekOffset = 0;
+var homeTab = 'dochadzka';
+var miniWeekOffset = 0;
+var selectedShiftType = 'full';
+var genWeekOffset = 0;
+
+async function loadData() {
+  try {
+    var res = await sb.from('fraid_data').select('value').eq('id', ROW_ID).maybeSingle();
+    if (res.error) throw res.error;
+    if (res.data && res.data.value) {
+      state = res.data.value;
+      if (!state.shifts) state.shifts = [];
+      if (!state.employees) state.employees = [];
+      if (!state.entries) state.entries = [];
+    } else {
+      // riadok ešte neexistuje, vytvor ho prázdny
+      await sb.from('fraid_data').insert({ id: ROW_ID, value: state });
+    }
+  } catch (e) {
+    console.error('Chyba pri načítaní', e);
+  }
+  renderEmployeeGrid();
+  renderMiniGrid();
+}
+
+async function saveData() {
+  try {
+    var res = await sb.from('fraid_data').upsert({ id: ROW_ID, value: state, updated_at: new Date().toISOString() });
+    if (res.error) throw res.error;
+  } catch (e) {
+    console.error('Chyba pri ukladaní', e);
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  currentEmployee = null;
+  pinBuffer = '';
+  renderEmployeeGrid();
+  renderMiniGrid();
+  showScreen('screen-home');
+}
+
+function switchHomeTab(tab) {
+  homeTab = tab;
+  document.getElementById('tab-dochadzka').classList.toggle('active', tab === 'dochadzka');
+  document.getElementById('tab-zmeny').classList.toggle('active', tab === 'zmeny');
+  renderEmployeeGrid();
+}
+
+function isWorking(empId) {
+  var openEntry = state.entries.find(function(e) { return e.employeeId === empId && !e.timeOut; });
+  return !!openEntry;
+}
+
+function renderEmployeeGrid() {
+  var grid = document.getElementById('employee-grid');
+  grid.innerHTML = '';
+  if (state.employees.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Zatiaľ nie sú pridané žiadne zamestnankyne. Požiadaj admina, nech ťa pridá.</div>';
+    return;
+  }
+  state.employees.forEach(function(emp) {
+    var card = document.createElement('div');
+    card.className = 'employee-card' + (homeTab === 'dochadzka' && isWorking(emp.id) ? ' working' : '');
+    card.innerHTML = (homeTab === 'dochadzka' && isWorking(emp.id) ? '<span class="status-dot"></span>' : '') + emp.name;
+    card.onclick = function() { openPinScreen(emp, homeTab === 'dochadzka' ? 'clock' : 'shifts'); };
+    grid.appendChild(card);
+  });
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  if (id === 'modal-add-employee') {
+    document.getElementById('new-emp-name').value = '';
+    document.getElementById('new-emp-pin').value = '';
+    document.getElementById('add-emp-error').textContent = '';
+  }
+  if (id === 'modal-admin-pin') {
+    document.getElementById('admin-pin-input').value = '';
+    document.getElementById('admin-pin-error').textContent = '';
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function addEmployee() {
+  var name = document.getElementById('new-emp-name').value.trim();
+  var pin = document.getElementById('new-emp-pin').value.trim();
+  var errEl = document.getElementById('add-emp-error');
+  if (!name) { errEl.textContent = 'Zadaj meno.'; return; }
+  if (!/^\d{4}$/.test(pin)) { errEl.textContent = 'PIN musí mať 4 čísla.'; return; }
+  var pinTaken = state.employees.some(function(e) { return e.pin === pin; });
+  if (pinTaken) { errEl.textContent = 'Tento PIN už niekto používa.'; return; }
+  var id = 'emp_' + Date.now();
+  state.employees.push({ id: id, name: name, pin: pin });
+  await saveData();
+  closeModal('modal-add-employee');
+  renderManageList();
+  renderEmployeeGrid();
+  renderMiniGrid();
+}
+
+async function removeEmployee(id) {
+  state.employees = state.employees.filter(function(e) { return e.id !== id; });
+  await saveData();
+  renderManageList();
+  renderEmployeeGrid();
+  renderMiniGrid();
+}
+
+function openPinScreen(emp, purpose) {
+  currentEmployee = emp;
+  pinPurpose = purpose;
+  pinBuffer = '';
+  document.getElementById('pin-emp-name').textContent = emp.name;
+  document.getElementById('pin-error').textContent = '';
+  renderPinDots();
+  renderKeypad();
+  showScreen('screen-pin');
+}
+
+function renderPinDots() {
+  var display = document.getElementById('pin-display');
+  display.innerHTML = '';
+  for (var i = 0; i < 4; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+    display.appendChild(dot);
+  }
+}
+
+function renderKeypad() {
+  var keypad = document.getElementById('keypad');
+  keypad.innerHTML = '';
+  var keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  keys.forEach(function(k) {
+    var btn = document.createElement('button');
+    if (k === '') { btn.className = 'key-btn action'; btn.style.visibility = 'hidden'; }
+    else if (k === '⌫') {
+      btn.className = 'key-btn action'; btn.textContent = k;
+      btn.onclick = function() { pinBuffer = pinBuffer.slice(0, -1); renderPinDots(); };
+    } else {
+      btn.className = 'key-btn'; btn.textContent = k;
+      btn.onclick = function() { pressPinKey(k); };
+    }
+    keypad.appendChild(btn);
+  });
+}
+
+function pressPinKey(k) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += k;
+  renderPinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+}
+
+function checkPin() {
+  if (pinBuffer === currentEmployee.pin) {
+    if (pinPurpose === 'shifts') {
+      openShiftsScreen(currentEmployee);
+    } else {
+      openClockScreen(currentEmployee);
+    }
+  } else {
+    document.getElementById('pin-error').textContent = 'Nesprávny PIN, skús znova.';
+    pinBuffer = '';
+    renderPinDots();
+  }
+}
+
+function openClockScreen(emp) {
+  currentEmployee = emp;
+  var working = isWorking(emp.id);
+  document.getElementById('clock-emp-name').textContent = emp.name;
+  var statusEl = document.getElementById('clock-status');
+  var btnEl = document.getElementById('clock-btn');
+  if (working) {
+    var openEntry = state.entries.find(function(e) { return e.employeeId === emp.id && !e.timeOut; });
+    statusEl.textContent = 'V práci od ' + openEntry.timeIn;
+    statusEl.className = 'clock-status working';
+    btnEl.textContent = 'ODCHOD';
+    btnEl.className = 'big-btn out';
+  } else {
+    statusEl.textContent = 'Momentálne: mimo práce';
+    statusEl.className = 'clock-status';
+    btnEl.textContent = 'PRÍCHOD';
+    btnEl.className = 'big-btn in';
+  }
+  showScreen('screen-clock');
+}
+
+function backToClockScreen() {
+  openClockScreen(currentEmployee);
+}
+
+async function toggleClock() {
+  var emp = currentEmployee;
+  var now = new Date();
+  var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  var dateStr = dateToStr(now);
+
+  var openEntry = state.entries.find(function(e) { return e.employeeId === emp.id && !e.timeOut; });
+  if (openEntry) {
+    openEntry.timeOut = timeStr;
+  } else {
+    state.entries.push({ id: 'entry_' + Date.now(), employeeId: emp.id, name: emp.name, date: dateStr, timeIn: timeStr, timeOut: null });
+  }
+  await saveData();
+  openClockScreen(emp);
+  renderEmployeeGrid();
+}
+
+// ---- MY HISTORY (employee's own attendance only) ----
+function openMyHistory() {
+  myWeekOffset = 0;
+  document.getElementById('my-history-title').textContent = currentEmployee.name + ' – môj prehľad';
+  renderMyHistory();
+  showScreen('screen-my-history');
+}
+function changeMyWeek(dir) { myWeekOffset += dir; renderMyHistory(); }
+
+function renderMyHistory() {
+  var range = getWeekRange(myWeekOffset);
+  document.getElementById('my-week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
+  var days = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d);
+  }
+  var totalHours = 0;
+  var rows = days.map(function(day) {
+    var dStr = dateToStr(day);
+    var entry = state.entries.find(function(e) { return e.employeeId === currentEmployee.id && e.date === dStr; });
+    var hrs = entry ? hoursBetween(entry.timeIn, entry.timeOut) : 0;
+    totalHours += hrs;
+    var dayName = ['Ne','Po','Ut','St','Št','Pi','So'][day.getDay()];
+    return '<tr><td>' + dayName + ' ' + fmtDateYear(day) + '</td><td>' + (entry ? entry.timeIn : '—') + '</td><td>' + (entry && entry.timeOut ? entry.timeOut : (entry ? '(v práci)' : '—')) + '</td><td>' + (hrs > 0 ? hrs.toFixed(1) + ' h' : '—') + '</td></tr>';
+  }).join('');
+  document.getElementById('my-history-content').innerHTML =
+    '<div class="emp-name-header"><span>Odpracované hodiny</span><span class="emp-total">' + totalHours.toFixed(1) + ' h spolu</span></div>' +
+    '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ---- SHIFTS (employee's own) ----
+function openShiftsScreen(emp) {
+  currentEmployee = emp;
+  document.getElementById('shifts-title').textContent = emp.name + ' – moje zmeny';
+  document.getElementById('fullday-checkbox').checked = true;
+  document.getElementById('shift-error').textContent = '';
+  toggleFullDay();
+  renderShiftList();
+  showScreen('screen-shifts');
+}
+
+function toggleFullDay() {
+  var checked = document.getElementById('fullday-checkbox').checked;
+  document.getElementById('custom-time-row').style.display = checked ? 'none' : 'block';
+}
+
+function timeToMinutes(t) {
+  var parts = t.split(':');
+  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
+function rangesOverlap(startA, endA, startB, endB) {
+  return startA < endB && startB < endA;
+}
+
+async function addShift() {
+  var errEl = document.getElementById('shift-error');
+  errEl.textContent = '';
+  var dateVal = document.getElementById('shift-date-input').value;
+  if (!dateVal) { errEl.textContent = 'Vyber dátum.'; return; }
+
+  var isFullDay = document.getElementById('fullday-checkbox').checked;
+  var startTime, endTime;
+  if (isFullDay) {
+    startTime = '08:00'; endTime = '16:00';
+  } else {
+    startTime = document.getElementById('shift-start-input').value;
+    endTime = document.getElementById('shift-end-input').value;
+    if (!startTime || !endTime) { errEl.textContent = 'Zadaj čas od a do.'; return; }
+    if (timeToMinutes(startTime) >= timeToMinutes(endTime)) { errEl.textContent = 'Čas "do" musí byť neskôr ako "od".'; return; }
+  }
+
+  var newStart = timeToMinutes(startTime);
+  var newEnd = timeToMinutes(endTime);
+
+  var conflict = state.shifts.find(function(s) {
+    if (s.date !== dateVal) return false;
+    return rangesOverlap(newStart, newEnd, timeToMinutes(s.startTime), timeToMinutes(s.endTime));
+  });
+  if (conflict) {
+    errEl.textContent = 'Tento čas je už obsadený: ' + conflict.name + ' (' + conflict.startTime + '–' + conflict.endTime + ').';
+    return;
+  }
+
+  state.shifts.push({
+    id: 'shift_' + Date.now(),
+    employeeId: currentEmployee.id,
+    name: currentEmployee.name,
+    date: dateVal,
+    startTime: startTime,
+    endTime: endTime,
+    isFullDay: isFullDay
+  });
+  await saveData();
+  document.getElementById('shift-date-input').value = '';
+  document.getElementById('fullday-checkbox').checked = true;
+  toggleFullDay();
+  renderShiftList();
+  renderMiniGrid();
+}
+
+function shiftTimeLabel(s) {
+  return s.startTime + '–' + s.endTime;
+}
+
+function renderShiftList() {
+  var mine = state.shifts.filter(function(s) { return s.employeeId === currentEmployee.id; });
+  mine.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  var listEl = document.getElementById('shift-list');
+  if (mine.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">Zatiaľ nemáš pridané žiadne zmeny.</div>';
+    return;
+  }
+  listEl.innerHTML = mine.map(function(s) {
+    var d = new Date(s.date + 'T00:00:00');
+    var badgeClass = s.isFullDay ? 'full' : 'half';
+    return '<div class="shift-item"><div><div class="shift-date">' + fmtDateYear(d) + '<span class="shift-badge ' + badgeClass + '">' + shiftTimeLabel(s) + '</span></div></div></div>';
+  }).join('');
+}
+
+// ---- ADMIN ----
+function openAdminPinModal() { openModal('modal-admin-pin'); }
+function checkAdminPin() {
+  var val = document.getElementById('admin-pin-input').value;
+  if (val === ADMIN_PIN) {
+    closeModal('modal-admin-pin');
+    adminWeekOffset = 0;
+    switchAdminSub('hodiny');
+    showScreen('screen-admin');
+  } else {
+    document.getElementById('admin-pin-error').textContent = 'Nesprávny PIN.';
+  }
+}
+
+function switchAdminSub(sub) {
+  ['hodiny','zamestnanci','zmeny'].forEach(function(s) {
+    document.getElementById('admsub-' + s).classList.toggle('active', s === sub);
+    document.getElementById('admin-' + s + '-panel').style.display = (s === sub) ? 'block' : 'none';
+  });
+  if (sub === 'hodiny') renderAdmin();
+  if (sub === 'zamestnanci') renderManageList();
+  if (sub === 'zmeny') { renderAdminShifts(); renderGenChecklist(); renderGenWeekLabel(); }
+}
+
+function renderManageList() {
+  var listEl = document.getElementById('manage-list');
+  if (state.employees.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">Zatiaľ žiadne zamestnankyne.</div>';
+    return;
+  }
+  listEl.innerHTML = state.employees.map(function(emp) {
+    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><button class="del-btn" onclick="removeEmployee(\'' + emp.id + '\')">Odstrániť</button></div>';
+  }).join('');
+}
+
+function renderAdminShifts() {
+  var all = state.shifts.slice().sort(function(a, b) { return a.date.localeCompare(b.date); });
+  var el = document.getElementById('admin-shifts-content');
+  if (all.length === 0) {
+    el.innerHTML = '<div class="empty-state">Zatiaľ nikto nepridal žiadnu zmenu.</div>';
+    return;
+  }
+  el.innerHTML = all.map(function(s) {
+    var d = new Date(s.date + 'T00:00:00');
+    var badgeClass = s.isFullDay ? 'full' : 'half';
+    return '<div class="shift-item"><div><div class="shift-date">' + fmtDateYear(d) + ' — ' + s.name + '<span class="shift-badge ' + badgeClass + '">' + shiftTimeLabel(s) + '</span></div></div><button class="del-btn" onclick="adminRemoveShift(\'' + s.id + '\')">Zmazať</button></div>';
+  }).join('');
+}
+
+async function adminRemoveShift(id) {
+  state.shifts = state.shifts.filter(function(s) { return s.id !== id; });
+  await saveData();
+  renderAdminShifts();
+  renderMiniGrid();
+}
+
+function changeMiniWeek(dir) { miniWeekOffset += dir; renderMiniGrid(); }
+
+function renderMiniGrid() {
+  var gridEl = document.getElementById('mini-grid');
+  var titleEl = document.getElementById('mini-week-title');
+  if (!gridEl) return;
+  var range = getWeekRange(miniWeekOffset);
+  titleEl.textContent = miniWeekOffset === 0 ? 'Kto pracuje tento týždeň' : (fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end));
+
+  var days = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
+  var todayStr = dateToStr(new Date());
+  var dayNames = ['Po','Ut','St','Št','Pi','So','Ne'];
+
+  var html = '<div class="corner"></div>';
+  days.forEach(function(d, idx) {
+    var isToday = dateToStr(d) === todayStr;
+    html += '<div class="mini-day-head' + (isToday ? ' today' : '') + '">' + dayNames[idx] + '<span class="dnum">' + d.getDate() + '.' + (d.getMonth()+1) + '.</span></div>';
+  });
+
+  if (state.employees.length === 0) {
+    gridEl.innerHTML = html;
+    gridEl.style.gridTemplateColumns = '74px repeat(7, 1fr)';
+    var empty = document.createElement('div');
+    return;
+  }
+
+  state.employees.forEach(function(emp) {
+    html += '<div class="mini-row-name">' + emp.name + '</div>';
+    days.forEach(function(d) {
+      var dStr = dateToStr(d);
+      var shift = state.shifts.find(function(s) { return s.employeeId === emp.id && s.date === dStr; });
+      var cellClass = 'mini-cell';
+      if (shift) {
+        cellClass += shift.isFullDay ? ' full' : ' half-am';
+      }
+      html += '<div class="' + cellClass + '" title="' + (shift ? emp.name + ' - ' + shiftTimeLabel(shift) : '') + '"></div>';
+    });
+  });
+
+  gridEl.innerHTML = html;
+}
+
+function getWeekRange(offset) {
+  var now = new Date();
+  now.setDate(now.getDate() + offset * 7);
+  var day = now.getDay();
+  var diffToMonday = day === 0 ? -6 : 1 - day;
+  var monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  monday.setHours(0,0,0,0);
+  var sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { start: monday, end: sunday };
+}
+
+function fmtDateYear(d) {
+  return d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '.' + d.getFullYear();
+}
+
+function dateToStr(d) {
+  return d.getFullYear() + '-' + (d.getMonth()+1).toString().padStart(2,'0') + '-' + d.getDate().toString().padStart(2,'0');
+}
+
+function changeWeek(dir) { adminWeekOffset += dir; renderAdmin(); }
+
+function hoursBetween(timeIn, timeOut) {
+  if (!timeIn || !timeOut) return 0;
+  var a = timeIn.split(':'); var b = timeOut.split(':');
+  var minutesIn = parseInt(a[0])*60 + parseInt(a[1]);
+  var minutesOut = parseInt(b[0])*60 + parseInt(b[1]);
+  var diff = minutesOut - minutesIn;
+  if (diff < 0) diff += 24*60;
+  return diff / 60;
+}
+
+function renderAdmin() {
+  var range = getWeekRange(adminWeekOffset);
+  document.getElementById('week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
+  var content = document.getElementById('admin-content');
+  content.innerHTML = '';
+  if (state.employees.length === 0) {
+    content.innerHTML = '<div class="empty-state">Zatiaľ nie sú pridané žiadne zamestnankyne.</div>';
+    return;
+  }
+  var days = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
+
+  state.employees.forEach(function(emp) {
+    var section = document.createElement('div');
+    section.className = 'emp-section';
+    var totalHours = 0;
+    var rows = days.map(function(day) {
+      var dStr = dateToStr(day);
+      var entry = state.entries.find(function(e) { return e.employeeId === emp.id && e.date === dStr; });
+      var hrs = entry ? hoursBetween(entry.timeIn, entry.timeOut) : 0;
+      totalHours += hrs;
+      var dayName = ['Ne','Po','Ut','St','Št','Pi','So'][day.getDay()];
+      return '<tr><td>' + dayName + ' ' + fmtDateYear(day) + '</td><td>' + (entry ? entry.timeIn : '—') + '</td><td>' + (entry && entry.timeOut ? entry.timeOut : (entry ? '(v práci)' : '—')) + '</td><td>' + (hrs > 0 ? hrs.toFixed(1) + ' h' : '—') + '</td></tr>';
+    }).join('');
+    section.innerHTML =
+      '<div class="emp-name-header"><span>' + emp.name + '</span><span class="emp-total">' + totalHours.toFixed(1) + ' h spolu</span></div>' +
+      '<table><thead><tr><th>Deň</th><th>Príchod</th><th>Odchod</th><th>Hodiny</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    content.appendChild(section);
+  });
+}
+
+function renderGenChecklist() {
+  var el = document.getElementById('gen-checklist');
+  if (state.employees.length === 0) {
+    el.innerHTML = '<div class="empty-state">Zatiaľ žiadne zamestnankyne na výber.</div>';
+    return;
+  }
+  el.innerHTML = state.employees.map(function(emp) {
+    return '<label class="gen-check-row"><input type="checkbox" class="gen-emp-check" value="' + emp.id + '" checked> ' + emp.name + '</label>';
+  }).join('');
+}
+
+function changeGenWeek(dir) { genWeekOffset += dir; renderGenWeekLabel(); }
+
+function renderGenWeekLabel() {
+  var range = getWeekRange(genWeekOffset);
+  document.getElementById('gen-week-label').textContent = fmtDateYear(range.start) + ' – ' + fmtDateYear(range.end);
+}
+
+async function generateRandomShifts() {
+  var checked = Array.prototype.slice.call(document.querySelectorAll('.gen-emp-check:checked')).map(function(c) { return c.value; });
+  if (checked.length === 0) { alert('Zaškrtni aspoň jednu zamestnankyňu.'); return; }
+
+  var range = getWeekRange(genWeekOffset);
+  var days = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(range.start); d.setDate(range.start.getDate() + i); days.push(d); }
+
+  // Odstráň predtým vygenerované zmeny pre tento týždeň (označené generated:true)
+  var weekDateStrs = days.map(dateToStr);
+  state.shifts = state.shifts.filter(function(s) {
+    return !(s.generated && weekDateStrs.indexOf(s.date) !== -1);
+  });
+
+  days.forEach(function(d, idx) {
+    var dow = d.getDay(); // 0 = nedeľa, 6 = sobota
+    if (dow === 0) return; // nedeľa voľno
+    var startTime = (dow === 6) ? '10:00' : '08:00';
+    var endTime = (dow === 6) ? '14:00' : '16:00';
+    var randomEmpId = checked[Math.floor(Math.random() * checked.length)];
+    var emp = state.employees.find(function(e) { return e.id === randomEmpId; });
+    if (!emp) return;
+    state.shifts.push({
+      id: 'shift_' + Date.now() + '_' + idx,
+      employeeId: emp.id,
+      name: emp.name,
+      date: dateToStr(d),
+      startTime: startTime,
+      endTime: endTime,
+      isFullDay: true,
+      generated: true
+    });
+  });
+
+  await saveData();
+  renderAdminShifts();
+  renderMiniGrid();
+}
+
+function setupAppIcon() {
+  var canvas = document.createElement('canvas');
+  canvas.width = 192; canvas.height = 192;
+  var ctx = canvas.getContext('2d');
+
+  // pozadie - espresso hnedá so zaoblenými rohmi
+  var r = 40;
+  ctx.fillStyle = '#3A211F';
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.arcTo(192, 0, 192, 192, r);
+  ctx.arcTo(192, 192, 0, 192, r);
+  ctx.arcTo(0, 192, 0, 0, r);
+  ctx.arcTo(0, 0, 192, 0, r);
+  ctx.closePath();
+  ctx.fill();
+
+  // šálka kávy - jednoduchý tvar
+  ctx.strokeStyle = '#FBF4E8';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // telo šálky
+  ctx.beginPath();
+  ctx.moveTo(55, 80);
+  ctx.lineTo(62, 140);
+  ctx.quadraticCurveTo(66, 152, 78, 152);
+  ctx.lineTo(114, 152);
+  ctx.quadraticCurveTo(126, 152, 130, 140);
+  ctx.lineTo(137, 80);
+  ctx.closePath();
+  ctx.stroke();
+
+  // ucho šálky
+  ctx.beginPath();
+  ctx.arc(148, 110, 16, -1.1, 1.1);
+  ctx.stroke();
+
+  // para
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(78, 66);
+  ctx.quadraticCurveTo(70, 54, 78, 44);
+  ctx.quadraticCurveTo(86, 34, 78, 24);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(112, 66);
+  ctx.quadraticCurveTo(104, 54, 112, 44);
+  ctx.quadraticCurveTo(120, 34, 112, 24);
+  ctx.stroke();
+
+  var dataUrl = canvas.toDataURL('image/png');
+
+  var appleIcon = document.createElement('link');
+  appleIcon.rel = 'apple-touch-icon';
+  appleIcon.href = dataUrl;
+  document.head.appendChild(appleIcon);
+
+  var favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.href = dataUrl;
+  document.head.appendChild(favicon);
+
+  var manifest = {
+    name: 'Fraid – Dochádzka',
+    short_name: 'Fraid',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#FBF4E8',
+    theme_color: '#3A211F',
+    icons: [
+      { src: dataUrl, sizes: '192x192', type: 'image/png' },
+      { src: dataUrl, sizes: '512x512', type: 'image/png' }
+    ]
+  };
+  var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  var manifestUrl = URL.createObjectURL(manifestBlob);
+  var manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = manifestUrl;
+  document.head.appendChild(manifestLink);
+}
+
+setupAppIcon();
+loadData();
+</script>
+
+</body>
+</html>
