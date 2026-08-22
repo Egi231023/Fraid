@@ -795,6 +795,19 @@
   </div>
 </div>
 
+<!-- CHANGE PIN MODAL -->
+<div class="modal-overlay" id="modal-change-pin">
+  <div class="modal-box">
+    <h3 id="change-pin-title">Zmeniť PIN</h3>
+    <input type="text" id="change-pin-input" placeholder="Nový PIN (4 čísla)" maxlength="4" inputmode="numeric">
+    <div class="error-msg" id="change-pin-error"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-change-pin')">Zrušiť</button>
+      <button class="modal-btn primary" onclick="saveChangedPin()">Uložiť</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function playClick() {
   try {
@@ -1535,8 +1548,32 @@ function renderManageList() {
     return;
   }
   listEl.innerHTML = state.employees.map(function(emp) {
-    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><button class="del-btn" onclick="confirmDeleteEmployee(\'' + emp.id + '\', \'' + emp.name.replace(/'/g, "\\'") + '\')">Odstrániť</button></div>';
+    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><div style="display:flex; gap:6px;"><button class="edit-hours-btn" onclick="openChangePin(\'' + emp.id + '\')">🔑</button><button class="del-btn" onclick="confirmDeleteEmployee(\'' + emp.id + '\', \'' + emp.name.replace(/'/g, "\\'") + '\')">Odstrániť</button></div></div>';
   }).join('');
+}
+
+var pendingPinChangeEmpId = null;
+
+function openChangePin(empId) {
+  pendingPinChangeEmpId = empId;
+  var emp = state.employees.find(function(e) { return e.id === empId; });
+  document.getElementById('change-pin-title').textContent = 'Zmeniť PIN – ' + (emp ? emp.name : '');
+  document.getElementById('change-pin-input').value = '';
+  document.getElementById('change-pin-error').textContent = '';
+  openModal('modal-change-pin');
+}
+
+async function saveChangedPin() {
+  var newPin = document.getElementById('change-pin-input').value.trim();
+  var errEl = document.getElementById('change-pin-error');
+  if (!/^\d{4}$/.test(newPin)) { errEl.textContent = 'PIN musí mať presne 4 čísla.'; return; }
+  var taken = state.employees.some(function(e) { return e.pin === newPin && e.id !== pendingPinChangeEmpId; });
+  if (taken) { errEl.textContent = 'Tento PIN už niekto používa.'; return; }
+  var emp = state.employees.find(function(e) { return e.id === pendingPinChangeEmpId; });
+  if (emp) emp.pin = newPin;
+  await saveData();
+  closeModal('modal-change-pin');
+  renderManageList();
 }
 
 async function toggleAutoClose() {
@@ -1949,14 +1986,14 @@ function showProfilePicker() {
 function selectProfile(empId) {
   tapFeedback();
   setRememberedProfile(empId);
-  var emp = state.employees.find(function(e) { return e.id === empId; });
-  if (emp) openPinScreen(emp, 'clock');
+  showScreen('screen-home');
 }
 
 function selectAdminProfile() {
   tapFeedback();
   setRememberedProfile('admin');
   showScreen('screen-home');
+  openAdminPinModal();
 }
 
 function tryAutoEnterProfile() {
@@ -1967,21 +2004,34 @@ function tryAutoEnterProfile() {
   }
   if (remembered === 'admin') {
     showScreen('screen-home');
+    openAdminPinModal();
     return;
   }
   var emp = state.employees.find(function(e) { return e.id === remembered; });
   if (emp) {
-    openPinScreen(emp, 'clock');
+    showScreen('screen-home');
   } else {
     clearRememberedProfile();
     showProfilePicker();
   }
 }
 
+var NOTES_LAST_READ_KEY = 'fraid_notes_last_read';
+
+function getLastReadTimestamp() {
+  try { return localStorage.getItem(NOTES_LAST_READ_KEY) || '1970-01-01T00:00:00.000Z'; } catch (e) { return '1970-01-01T00:00:00.000Z'; }
+}
+
+function setLastReadTimestamp(iso) {
+  try { localStorage.setItem(NOTES_LAST_READ_KEY, iso); } catch (e) {}
+}
+
 function openNotesBoard() {
   tapFeedback();
   renderNotesList();
   openModal('modal-notes');
+  setLastReadTimestamp(new Date().toISOString());
+  updateNotifBadges();
 }
 
 function renderNotesList() {
@@ -2010,13 +2060,14 @@ async function sendNote() {
   textEl.value = '';
   await saveData();
   renderNotesList();
+  setLastReadTimestamp(new Date().toISOString());
   updateNotifBadges();
 }
 
 function updateNotifBadges() {
   if (!state.notes) state.notes = [];
-  var since = Date.now() - 24 * 60 * 60 * 1000;
-  var recent = state.notes.filter(function(n) { return new Date(n.createdAt).getTime() > since; }).length;
+  var lastRead = getLastReadTimestamp();
+  var recent = state.notes.filter(function(n) { return n.createdAt > lastRead; }).length;
   ['notif-badge-home', 'notif-badge-clock'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
