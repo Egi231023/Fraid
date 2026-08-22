@@ -569,10 +569,22 @@ async function loadData() {
     }
   } catch (e) {
     console.error('Chyba pri načítaní', e);
-    alert('CHYBA pri načítaní: ' + (e.message || JSON.stringify(e)));
+    alert('CHYBA pri načítaní:\n' + formatSupabaseError(e));
   }
   renderEmployeeGrid();
   renderMiniGrid();
+}
+
+function formatSupabaseError(e) {
+  var parts = [];
+  if (e.message) parts.push('Správa: ' + e.message);
+  if (e.code) parts.push('Kód: ' + e.code);
+  if (e.details) parts.push('Detaily: ' + e.details);
+  if (e.hint) parts.push('Hint: ' + e.hint);
+  if (parts.length === 0) {
+    try { parts.push(JSON.stringify(e)); } catch (err) { parts.push(String(e)); }
+  }
+  return parts.join('\n');
 }
 
 async function saveData() {
@@ -581,7 +593,7 @@ async function saveData() {
     if (res.error) throw res.error;
   } catch (e) {
     console.error('Chyba pri ukladaní', e);
-    alert('CHYBA pri ukladaní: ' + (e.message || JSON.stringify(e)));
+    alert('CHYBA pri ukladaní:\n' + formatSupabaseError(e));
   }
 }
 
