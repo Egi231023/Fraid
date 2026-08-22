@@ -535,7 +535,9 @@
       <div class="logo">☕ Fraid</div>
       <div class="topbar-actions">
         <button class="icon-btn" onclick="openNotesBoard()">🔔<span class="notif-badge" id="notif-badge-home" style="display:none;"></span></button>
-        <button class="icon-btn" onclick="openAdminPinModal()">⚙️</button>
+        <button class="icon-btn profile-icon-btn" id="profile-icon-btn" onclick="openProfileMenu()">
+          <span id="profile-icon-inner">👤</span>
+        </button>
       </div>
     </div>
     <div class="mini-week-card">
@@ -557,15 +559,6 @@
       <button class="tab-btn" id="tab-zmeny" onclick="switchHomeTab('zmeny')">Zmeny</button>
     </div>
     <div id="employee-grid" class="employee-grid"></div>
-    <div class="secondary-link" style="text-align:center; margin-top:18px;" onclick="showProfilePicker()">🔄 Zmeniť profil zariadenia</div>
-  </div>
-
-  <!-- PROFILE PICKER (Netflix style) -->
-  <div class="screen" id="screen-profiles">
-    <div class="center-box">
-      <div class="name-title" style="margin-bottom:24px;">Kto používa appku?</div>
-      <div class="profile-grid" id="profile-grid"></div>
-    </div>
   </div>
 
   <!-- PIN ENTRY SCREEN -->
@@ -804,6 +797,19 @@
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-change-pin')">Zrušiť</button>
       <button class="modal-btn primary" onclick="saveChangedPin()">Uložiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MENU -->
+<div class="modal-overlay" id="modal-profile-menu">
+  <div class="modal-box">
+    <h3>Profil</h3>
+    <p id="profile-current-label" style="color:var(--muted); font-size:14px; font-weight:600; margin-bottom:16px;"></p>
+    <div class="profile-grid" id="profile-grid"></div>
+    <button class="continue-btn" style="margin-top:20px; background:var(--espresso);" onclick="forceRefreshApp()">🔃 Obnoviť aplikáciu</button>
+    <div class="modal-actions" style="margin-top:10px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-profile-menu')">Zavrieť</button>
     </div>
   </div>
 </div>
@@ -1965,8 +1971,8 @@ function clearRememberedProfile() {
   try { localStorage.removeItem(DEVICE_PROFILE_KEY); } catch (e) {}
 }
 
-function showProfilePicker() {
-  var grid = document.getElementById('profile-grid');
+function renderProfileGrid(targetElId) {
+  var grid = document.getElementById(targetElId);
   var html = state.employees.map(function(emp) {
     var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
     var img = ANIMALS[animalKey].emojiHappy;
@@ -1980,39 +1986,76 @@ function showProfilePicker() {
     '<div class="profile-name">Admin</div>' +
   '</div>';
   grid.innerHTML = html;
-  showScreen('screen-profiles');
+}
+
+function openProfileMenu() {
+  tapFeedback();
+  var remembered = getRememberedProfile();
+  var currentLabel = document.getElementById('profile-current-label');
+  if (remembered === 'admin') {
+    currentLabel.textContent = 'Prihlásený ako: Admin';
+  } else {
+    var emp = state.employees.find(function(e) { return e.id === remembered; });
+    currentLabel.textContent = emp ? ('Prihlásený ako: ' + emp.name) : 'Nikto nie je vybraný';
+  }
+  renderProfileGrid('profile-grid');
+  openModal('modal-profile-menu');
 }
 
 function selectProfile(empId) {
   tapFeedback();
   setRememberedProfile(empId);
-  showScreen('screen-home');
+  closeModal('modal-profile-menu');
+  updateProfileIcon();
+  renderEmployeeGrid();
 }
 
 function selectAdminProfile() {
   tapFeedback();
   setRememberedProfile('admin');
-  showScreen('screen-home');
+  closeModal('modal-profile-menu');
+  updateProfileIcon();
   openAdminPinModal();
 }
 
-function tryAutoEnterProfile() {
+function updateProfileIcon() {
   var remembered = getRememberedProfile();
-  if (!remembered) {
-    showProfilePicker();
-    return;
-  }
+  var el = document.getElementById('profile-icon-inner');
+  if (!el) return;
   if (remembered === 'admin') {
-    showScreen('screen-home');
-    openAdminPinModal();
-    return;
-  }
-  var emp = state.employees.find(function(e) { return e.id === remembered; });
-  if (emp) {
-    showScreen('screen-home');
+    el.innerHTML = '⚙️';
+  } else if (remembered) {
+    var emp = state.employees.find(function(e) { return e.id === remembered; });
+    var animalKey = emp && emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : null;
+    if (animalKey) {
+      el.innerHTML = '<img src="' + ANIMALS[animalKey].emojiHappy + '" alt="" style="width:22px;height:22px;object-fit:contain;border-radius:50%;">';
+    } else {
+      el.innerHTML = '👤';
+    }
   } else {
-    clearRememberedProfile();
-    showProfilePicker();
+    el.innerHTML = '👤';
+  }
+}
+
+function forceRefreshApp() {
+  tapFeedback();
+  try {
+    if ('caches' in window) {
+      caches.keys().then(function(names) { names.forEach(function(n) { caches.delete(n); }); });
+    }
+  } catch (e) {}
+  var url = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
+  window.location.href = url;
+}
+
+function tryAutoEnterProfile() {
+  showScreen('screen-home');
+  updateProfileIcon();
+  var remembered = getRememberedProfile();
+  if (remembered === 'admin') {
+    openAdminPinModal();
+  } else if (!remembered) {
+    openProfileMenu();
   }
 }
 
