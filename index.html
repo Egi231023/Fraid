@@ -168,6 +168,15 @@
     margin-right: 6px;
     vertical-align: middle;
   }
+  .employee-card.locked-card { cursor: default; }
+  .employee-card.locked-card:active { transform: none; }
+  .poke-row { display: flex; gap: 5px; justify-content: center; margin-top: 8px; }
+  .poke-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--cream); border: none; font-size: 14px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .poke-btn:active { background: var(--line); }
 
   .center-box {
     flex: 1;
@@ -535,6 +544,7 @@
       <div class="logo">☕ Fraid</div>
       <div class="topbar-actions">
         <button class="icon-btn" onclick="openNotesBoard()">🔔<span class="notif-badge" id="notif-badge-home" style="display:none;"></span></button>
+        <button class="icon-btn" onclick="forceRefreshApp()">🔃</button>
         <button class="icon-btn profile-icon-btn" id="profile-icon-btn" onclick="openProfileMenu()">
           <span id="profile-icon-inner">👤</span>
         </button>
@@ -807,8 +817,7 @@
     <h3>Profil</h3>
     <p id="profile-current-label" style="color:var(--muted); font-size:14px; font-weight:600; margin-bottom:16px;"></p>
     <div class="profile-grid" id="profile-grid"></div>
-    <button class="continue-btn" style="margin-top:20px; background:var(--espresso);" onclick="forceRefreshApp()">🔃 Obnoviť aplikáciu</button>
-    <div class="modal-actions" style="margin-top:10px;">
+    <div class="modal-actions" style="margin-top:16px;">
       <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-profile-menu')">Zavrieť</button>
     </div>
   </div>
@@ -954,11 +963,42 @@ function showScreen(id) {
 }
 
 function goHome() {
-  currentEmployee = null;
   pinBuffer = '';
   renderEmployeeGrid();
   renderMiniGrid();
   showScreen('screen-home');
+}
+
+var NAME_COLOR_PALETTE = ['#C97F53','#4F8055','#A5623C','#5B84AA','#8B5CF6','#D9534F','#2E8B8B','#B8860B'];
+function colorForEmployee(empId) {
+  var idx = state.employees.findIndex(function(e) { return e.id === empId; });
+  if (idx < 0) idx = 0;
+  return NAME_COLOR_PALETTE[idx % NAME_COLOR_PALETTE.length];
+}
+
+var POKE_ACTIONS = [
+  { key: 'stuch', emoji: '👉', label: 'štuchnutie' },
+  { key: 'oplut', emoji: '🤮', label: 'opľutie' },
+  { key: 'ocikat', emoji: '💦', label: 'ocikanie' },
+  { key: 'facka', emoji: '✋', label: 'facka' }
+];
+
+async function sendPoke(targetEmpId, actionKey) {
+  tapFeedback();
+  var target = state.employees.find(function(e) { return e.id === targetEmpId; });
+  var action = POKE_ACTIONS.find(function(a) { return a.key === actionKey; });
+  if (!target || !action) return;
+  var authorName = currentEmployee ? currentEmployee.name : 'Admin';
+  if (!state.notes) state.notes = [];
+  state.notes.push({
+    id: 'note_' + Date.now(),
+    author: authorName,
+    text: action.emoji + ' ' + authorName + ' → ' + target.name + ' (' + action.label + ')',
+    createdAt: new Date().toISOString()
+  });
+  if (state.notes.length > 50) state.notes = state.notes.slice(-50);
+  await saveData();
+  updateNotifBadges();
 }
 
 function switchHomeTab(tab) {
@@ -980,15 +1020,43 @@ function renderEmployeeGrid() {
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Zatiaľ nie sú pridané žiadne zamestnankyne. Požiadaj admina, nech ťa pridá.</div>';
     return;
   }
+
+  var lockedToEmployee = !!currentEmployee;
+
   state.employees.forEach(function(emp) {
+    var isMe = currentEmployee && emp.id === currentEmployee.id;
     var card = document.createElement('div');
     card.className = 'employee-card' + (homeTab === 'dochadzka' && isWorking(emp.id) ? ' working' : '');
+    var nameColor = colorForEmployee(emp.id);
     var nameHtml = (homeTab === 'dochadzka' && isWorking(emp.id) ? '<span class="status-dot"></span>' : '') + emp.name;
     var moodHtml = emp.mood ? '<span class="employee-mood-line">' + emp.mood + ' ' + moodLabel(emp.mood) + '</span>' : '';
-    card.innerHTML = '<span class="employee-name-line">' + nameHtml + '</span>' + moodHtml;
-    card.onclick = function() { openPinScreen(emp, homeTab === 'dochadzka' ? 'clock' : 'shifts'); };
+    card.innerHTML = '<span class="employee-name-line" style="color:' + nameColor + '">' + nameHtml + '</span>' + moodHtml;
+
+    if (lockedToEmployee && !isMe) {
+      // uzamknuté – nemôže sa prihlásiť ako niekto iný, len ju "štuchne"
+      card.classList.add('locked-card');
+      var pokeRow = document.createElement('div');
+      pokeRow.className = 'poke-row';
+      POKE_ACTIONS.forEach(function(a) {
+        var btn = document.createElement('button');
+        btn.className = 'poke-btn';
+        btn.textContent = a.emoji;
+        btn.onclick = function(ev) { ev.stopPropagation(); sendPoke(emp.id, a.key); };
+        pokeRow.appendChild(btn);
+      });
+      card.appendChild(pokeRow);
+    } else {
+      card.onclick = function() {
+        if (isMe) { openClockScreen(emp, 'greeting'); }
+        else { openPinScreen(emp, homeTab === 'dochadzka' ? 'clock' : 'shifts'); }
+      };
+    }
     grid.appendChild(card);
   });
+}
+
+function sessionAdminActive() {
+  return getRememberedProfile() === 'admin';
 }
 
 function openModal(id) {
@@ -1523,10 +1591,21 @@ function renderShiftList() {
 }
 
 // ---- ADMIN ----
-function openAdminPinModal() { openModal('modal-admin-pin'); }
+var sessionAdminAuthenticated = false;
+
+function openAdminPinModal() {
+  if (sessionAdminAuthenticated) {
+    adminWeekOffset = 0;
+    switchAdminSub('hodiny');
+    showScreen('screen-admin');
+    return;
+  }
+  openModal('modal-admin-pin');
+}
 function checkAdminPin() {
   var val = document.getElementById('admin-pin-input').value;
   if (val === ADMIN_PIN) {
+    sessionAdminAuthenticated = true;
     closeModal('modal-admin-pin');
     adminWeekOffset = 0;
     switchAdminSub('hodiny');
@@ -2005,6 +2084,8 @@ function openProfileMenu() {
 function selectProfile(empId) {
   tapFeedback();
   setRememberedProfile(empId);
+  currentEmployee = null;
+  sessionAdminAuthenticated = false;
   closeModal('modal-profile-menu');
   updateProfileIcon();
   renderEmployeeGrid();
@@ -2013,6 +2094,7 @@ function selectProfile(empId) {
 function selectAdminProfile() {
   tapFeedback();
   setRememberedProfile('admin');
+  currentEmployee = null;
   closeModal('modal-profile-menu');
   updateProfileIcon();
   openAdminPinModal();
