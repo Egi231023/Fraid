@@ -105,12 +105,95 @@
     display: flex; align-items: center; justify-content: center;
   }
 
-  .profile-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    max-width: 340px;
+  /* === WELCOME SCREEN === */
+  #screen-welcome {
+    position: fixed; inset: 0; z-index: 40;
+    background: #0A0A0A;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 0 0 env(safe-area-inset-bottom);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
   }
+  #screen-welcome.active { opacity: 1; pointer-events: auto; }
+  #screen-welcome.closing { opacity: 0; transition: opacity 0.4s ease; }
+
+  .welcome-top {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding-top: env(safe-area-inset-top);
+  }
+  .welcome-logo {
+    font-family: 'Fraunces', serif; font-size: 42px; font-weight: 700;
+    color: #fff; letter-spacing: -0.5px;
+    opacity: 0; transform: translateY(20px);
+    animation: wFadeUp 0.6s 0.1s cubic-bezier(0.19,1,0.22,1) forwards;
+  }
+  .welcome-tagline {
+    font-size: 14px; color: rgba(255,255,255,0.4); font-weight: 500;
+    opacity: 0; transform: translateY(10px);
+    animation: wFadeUp 0.6s 0.25s cubic-bezier(0.19,1,0.22,1) forwards;
+  }
+  @keyframes wFadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .welcome-bottom {
+    width: 100%; padding: 28px 28px 20px;
+    background: linear-gradient(to bottom, transparent, #0A0A0A 30%);
+  }
+  .welcome-subtitle {
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 18px; text-align: left;
+    opacity: 0; animation: wFadeUp 0.5s 0.4s ease forwards;
+  }
+  .welcome-profile-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 20px;
+  }
+  .welcome-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer;
+    opacity: 0; transform: translateY(16px);
+  }
+  .welcome-tile:nth-child(1) { animation: wFadeUp 0.5s 0.45s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(2) { animation: wFadeUp 0.5s 0.52s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(3) { animation: wFadeUp 0.5s 0.59s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(4) { animation: wFadeUp 0.5s 0.66s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(5) { animation: wFadeUp 0.5s 0.73s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(6) { animation: wFadeUp 0.5s 0.80s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(7) { animation: wFadeUp 0.5s 0.87s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(8) { animation: wFadeUp 0.5s 0.94s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:active .welcome-avatar { transform: scale(0.92); }
+  .welcome-avatar {
+    width: 72px; height: 72px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; transition: transform 0.12s ease;
+    border: 1.5px solid rgba(255,255,255,0.08);
+  }
+  .welcome-avatar img { width: 82%; height: 82%; object-fit: contain; }
+  .welcome-avatar.admin-av {
+    background: rgba(255,255,255,0.08);
+  }
+  .welcome-name { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.85); text-align: center; }
+
+  .welcome-locked {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 20px 0;
+    opacity: 0; animation: wFadeUp 0.5s 0.3s ease forwards;
+  }
+  .welcome-locked .welcome-avatar { width: 88px; height: 88px; border-radius: 22px; }
+  .welcome-locked-name { font-size: 20px; font-weight: 700; color: #fff; }
+  .welcome-locked-hint { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; max-width: 260px; line-height: 1.5; }
+
+  .welcome-logout-btn {
+    width: 100%; padding: 15px; border-radius: 14px;
+    background: rgba(255,255,255,0.07); border: none;
+    color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+    opacity: 0; animation: wFadeUp 0.5s 0.9s ease forwards;
+  }
+  .welcome-logout-btn:active { background: rgba(255,255,255,0.12); }
   .profile-tile {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
     cursor: pointer;
@@ -703,6 +786,20 @@
 <div id="app">
 
   <!-- HOME SCREEN -->
+<!-- WELCOME / PROFILE PICKER SCREEN -->
+<div id="screen-welcome">
+  <div class="welcome-top">
+    <div class="welcome-logo">☕ Fraid</div>
+    <div class="welcome-tagline">Dochádzka a zmeny</div>
+  </div>
+  <div class="welcome-bottom">
+    <div class="welcome-subtitle" id="welcome-subtitle">Kto si?</div>
+    <div class="welcome-profile-grid" id="welcome-profile-grid"></div>
+    <div class="welcome-locked" id="welcome-locked" style="display:none;"></div>
+    <button class="welcome-logout-btn" id="welcome-logout-btn" onclick="logoutDevice()" style="display:none;">Odhlásiť z tohto zariadenia</button>
+  </div>
+</div>
+
   <div class="screen active" id="screen-home">
     <div class="topbar">
       <div class="logo">☕ Fraid</div>
@@ -1322,7 +1419,7 @@ function goHome() {
   showScreen('screen-home');
   if (!currentEmployee) {
     renderProfileMenuContent();
-    openModal('modal-profile-menu');
+    openProfileMenu();
   }
 }
 
@@ -2822,9 +2919,8 @@ function logoutDevice() {
   updateProfileIcon();
   renderEmployeeGrid();
   renderMiniGrid();
-  if (document.getElementById('modal-profile-menu').classList.contains('active')) {
-    renderProfileMenuContent();
-  }
+  renderProfileMenuContent();
+  openProfileMenu();
 }
 
 function renderProfileGrid(targetElId) {
@@ -2845,41 +2941,57 @@ function renderProfileGrid(targetElId) {
 }
 
 function renderProfileMenuContent() {
-  var gridEl = document.getElementById('profile-grid');
-  var lockedEl = document.getElementById('locked-profile-view');
-  var subtitleEl = document.getElementById('profile-menu-subtitle');
-  var currentLabel = document.getElementById('profile-current-label');
+  var gridEl = document.getElementById('welcome-profile-grid');
+  var lockedEl = document.getElementById('welcome-locked');
+  var subtitleEl = document.getElementById('welcome-subtitle');
+  var logoutBtn = document.getElementById('welcome-logout-btn');
 
   if (currentEmployee) {
     var animalKey = currentEmployee.avatar && ANIMALS[currentEmployee.avatar] ? currentEmployee.avatar : 'pudlik';
     var img = ANIMALS[animalKey].emojiHappy;
-    subtitleEl.textContent = 'Toto zariadenie je uzamknuté';
-    currentLabel.textContent = '';
-    lockedEl.innerHTML =
-      '<div class="profile-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + img + '" alt=""></div>' +
-      '<div class="profile-name">' + currentEmployee.name + '</div>' +
-      '<p class="locked-hint">Si prihlásená ako ' + currentEmployee.name + '. Pre prepnutie na iný profil sa najprv musíš odhlásiť.</p>';
+    subtitleEl.textContent = 'Prihlásená';
     gridEl.style.display = 'none';
     lockedEl.style.display = 'flex';
+    lockedEl.innerHTML =
+      '<div class="welcome-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + img + '" alt=""></div>' +
+      '<div class="welcome-locked-name">' + currentEmployee.name + '</div>' +
+      '<div class="welcome-locked-hint">Pre prepnutie na iný profil sa najprv odhlás.</div>';
+    logoutBtn.style.display = 'block';
   } else {
-    subtitleEl.textContent = 'Vyber si svoj profil';
-    var remembered = getRememberedProfile();
-    if (remembered === 'admin') {
-      currentLabel.textContent = 'Naposledy: Admin';
-    } else {
-      var emp = state.employees.find(function(e) { return e.id === remembered; });
-      currentLabel.textContent = emp ? ('Naposledy: ' + emp.name) : '';
-    }
-    renderProfileGrid('profile-grid');
-    gridEl.style.display = 'grid';
+    subtitleEl.textContent = 'Kto si?';
     lockedEl.style.display = 'none';
+    logoutBtn.style.display = 'none';
+    gridEl.style.display = 'grid';
+    var html = state.employees.map(function(emp) {
+      var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
+      var img = ANIMALS[animalKey].emojiHappy;
+      return '<div class="welcome-tile" onclick="selectProfile(\'' + emp.id + '\')">' +
+        '<div class="welcome-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + img + '" alt=""></div>' +
+        '<div class="welcome-name">' + emp.name + '</div>' +
+      '</div>';
+    }).join('');
+    html += '<div class="welcome-tile" onclick="selectAdminProfile()">' +
+      '<div class="welcome-avatar admin-av"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15 1.65 1.65 0 0 0 3.17 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.36.4.66.73.85.24.14.5.22.78.24H21a2 2 0 0 1 0 4h-.09c-.28.02-.54.1-.78.24-.33.19-.59.49-.73.85Z"/></svg></div>' +
+      '<div class="welcome-name">Admin</div>' +
+    '</div>';
+    gridEl.innerHTML = html;
   }
 }
 
 function openProfileMenu() {
   tapFeedback();
   renderProfileMenuContent();
-  openModal('modal-profile-menu');
+  var ws = document.getElementById('screen-welcome');
+  ws.classList.add('active');
+  ws.querySelectorAll('.welcome-tile, .welcome-subtitle, .welcome-logo, .welcome-tagline, .welcome-locked, .welcome-logout-btn').forEach(function(el) {
+    el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+  });
+}
+
+function closeProfileMenu() {
+  var ws = document.getElementById('screen-welcome');
+  ws.classList.add('closing');
+  setTimeout(function() { ws.classList.remove('active'); ws.classList.remove('closing'); }, 400);
 }
 
 function selectProfile(empId) {
@@ -2888,7 +3000,7 @@ function selectProfile(empId) {
   clearStayLoggedIn();
   currentEmployee = null;
   sessionAdminAuthenticated = false;
-  closeModal('modal-profile-menu');
+  closeProfileMenu();
   updateProfileIcon();
   renderEmployeeGrid();
   var emp = state.employees.find(function(e) { return e.id === empId; });
@@ -2900,7 +3012,7 @@ function selectAdminProfile() {
   setRememberedProfile('admin');
   clearStayLoggedIn();
   currentEmployee = null;
-  closeModal('modal-profile-menu');
+  closeProfileMenu();
   updateProfileIcon();
   openAdminPinModal();
 }
