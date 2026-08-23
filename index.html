@@ -860,6 +860,7 @@ var ROW_ID = 'fraid-main';
 var ADMIN_PIN = '2310';
 var state = { employees: [], entries: [], shifts: [], settings: { autoCloseEnabled: true, autoCloseTime: '16:10' } };
 var currentEmployee = null;
+var pendingPinEmployee = null;
 var pinBuffer = '';
 var pinPurpose = 'clock'; // 'clock' or after-pin destination
 var adminWeekOffset = 0;
@@ -964,6 +965,7 @@ function showScreen(id) {
 
 function goHome() {
   pinBuffer = '';
+  pendingPinEmployee = null;
   renderEmployeeGrid();
   renderMiniGrid();
   showScreen('screen-home');
@@ -1111,7 +1113,7 @@ async function removeEmployee() {
 
 function openPinScreen(emp, purpose) {
   tapFeedback();
-  currentEmployee = emp;
+  pendingPinEmployee = emp;
   pinPurpose = purpose;
   pinBuffer = '';
   document.getElementById('pin-emp-name').textContent = emp.name;
@@ -1187,7 +1189,9 @@ var ANIMALS = {
 var ANIMAL_ORDER = ['pudlik','zaba','tucniak','zirafa','medvedik','kuriatko','macicka'];
 
 function checkPin() {
-  if (pinBuffer === currentEmployee.pin) {
+  if (pinBuffer === pendingPinEmployee.pin) {
+    currentEmployee = pendingPinEmployee;
+    pendingPinEmployee = null;
     if (!currentEmployee.avatar) {
       pendingPinDestination = pinPurpose;
       openAvatarPicker(currentEmployee);
@@ -2138,6 +2142,9 @@ function tryAutoEnterProfile() {
     openAdminPinModal();
   } else if (!remembered) {
     openProfileMenu();
+  } else {
+    var rememberedEmp = state.employees.find(function(e) { return e.id === remembered; });
+    if (rememberedEmp) { openPinScreen(rememberedEmp, 'clock'); } else { openProfileMenu(); }
   }
 }
 
