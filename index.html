@@ -1402,7 +1402,7 @@ function renderCalendarCard() {
     if (isHoliday || hasBirthday || hasShifts) {
       dots = '<span class="cal-dot-row">' + (isHoliday ? '<span class="cal-dot holiday"></span>' : '') + (hasBirthday ? '<span class="cal-dot birthday"></span>' : '') + (hasShifts ? '<span class="cal-dot working"></span>' : '') + '</span>';
     }
-    html += '<div class="' + cls + '" onclick="selectCalendarDay(' + cellDate.getFullYear() + ',' + cellDate.getMonth() + ',' + cellDate.getDate() + '"><span class="cal-dow">' + weekdayLabels[i] + '</span>' + cellDate.getDate() + dots + '</div>';
+    html += '<div class="' + cls + '" onclick="selectCalendarDay(' + cellDate.getFullYear() + ',' + cellDate.getMonth() + ',' + cellDate.getDate() + ')"><span class="cal-dow">' + weekdayLabels[i] + '</span>' + cellDate.getDate() + dots + '</div>';
   }
   html += '</div>';
 
