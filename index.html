@@ -151,13 +151,35 @@
   .hamburger-menu-list { display: flex; flex-direction: column; gap: 8px; }
   .hamburger-divider { height: 1px; background: var(--line); margin: 6px 4px; }
   .calendar-card {
-    margin: 14px 18px 0; padding: 16px 18px; border-radius: var(--radius); background: var(--espresso);
+    margin: 14px 18px 0; padding: 16px 16px 14px; border-radius: var(--radius); background: var(--espresso);
     color: var(--cream); box-shadow: var(--shadow);
   }
-  .calendar-card .cal-date { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 600; }
-  .calendar-card .cal-sub { font-size: 13.5px; opacity: 0.82; margin-top: 3px; }
-  .calendar-card .cal-holiday { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 20px; background: var(--terracotta); color: var(--cream); font-size: 12.5px; font-weight: 600; }
-  .cal-birthday-row { margin-top: 8px; font-size: 13px; opacity: 0.9; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-header .cal-month-label { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; text-transform: capitalize; }
+  .cal-nav-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.12); color: var(--cream);
+    font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: transform 0.1s ease, background 0.1s ease;
+  }
+  .cal-nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.22); }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; opacity: 0.6; margin-bottom: 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 3px; }
+  .cal-day {
+    position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 13.5px; border-radius: 50%; cursor: pointer; color: var(--cream);
+  }
+  .cal-day.other-month { opacity: 0.28; cursor: default; }
+  .cal-day.is-today { background: var(--terracotta); font-weight: 700; }
+  .cal-day.is-selected:not(.is-today) { background: rgba(255,255,255,0.16); }
+  .cal-day .cal-dot-row { position: absolute; bottom: 2px; display: flex; gap: 2px; }
+  .cal-day .cal-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .cal-day .cal-dot.holiday { background: var(--gold); }
+  .cal-day .cal-dot.birthday { background: #ff9fb0; }
+  .cal-info-box { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.14); }
+  .cal-info-box .cal-date { font-size: 14.5px; font-weight: 600; }
+  .cal-info-box .cal-sub { font-size: 13px; opacity: 0.82; margin-top: 2px; }
+  .cal-info-box .cal-holiday-badge { display: inline-block; margin-top: 7px; padding: 4px 10px; border-radius: 20px; background: var(--terracotta); color: var(--cream); font-size: 12px; font-weight: 600; }
+  .cal-info-box .cal-birthday-line { margin-top: 6px; font-size: 13px; opacity: 0.9; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
   .shift-form-input-standalone { width: 100%; padding: 12px; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; font-size: 15px; font-family: 'Inter', sans-serif; color: var(--ink); background: var(--cream-soft); }
   .hamburger-item {
@@ -1338,21 +1360,84 @@ function isWorking(empId) {
   return !!openEntry;
 }
 
+var calendarMonthOffset = 0;
+var calendarSelectedDate = null;
+
+function changeCalendarMonth(delta) {
+  calendarMonthOffset += delta;
+  calendarSelectedDate = null;
+  renderCalendarCard();
+}
+
+function selectCalendarDay(y, m, d) {
+  calendarSelectedDate = new Date(y, m, d);
+  renderCalendarCard();
+}
+
 function renderCalendarCard() {
   var el = document.getElementById('calendar-card');
   if (!el) return;
-  var now = new Date();
+  var today = new Date();
+  var viewDate = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
+  var y = viewDate.getFullYear(), m = viewDate.getMonth();
+  var monthNames = ['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+  var weekdayLabels = ['Po','Ut','St','Št','Pi','So','Ne'];
+
+  var firstDay = new Date(y, m, 1);
+  var startOffset = (firstDay.getDay() + 6) % 7; // pondelok = 0
+  var daysInMonth = new Date(y, m + 1, 0).getDate();
+  var daysInPrevMonth = new Date(y, m, 0).getDate();
+
+  var html = '<div class="cal-header">' +
+    '<button class="cal-nav-btn" onclick="changeCalendarMonth(-1)">‹</button>' +
+    '<div class="cal-month-label">' + monthNames[m] + ' ' + y + '</div>' +
+    '<button class="cal-nav-btn" onclick="changeCalendarMonth(1)">›</button>' +
+  '</div>';
+  html += '<div class="cal-weekdays">' + weekdayLabels.map(function(w) { return '<div>' + w + '</div>'; }).join('') + '</div>';
+  html += '<div class="cal-grid">';
+
+  var birthdaysByMmdd = {};
+  state.employees.forEach(function(e) { if (e.birthday) { birthdaysByMmdd[e.birthday] = (birthdaysByMmdd[e.birthday] || []).concat(e.name); } });
+
+  var cells = [];
+  for (var i = 0; i < startOffset; i++) { cells.push({ day: daysInPrevMonth - startOffset + 1 + i, otherMonth: true, m: m - 1 }); }
+  for (var d = 1; d <= daysInMonth; d++) { cells.push({ day: d, otherMonth: false, m: m }); }
+  while (cells.length % 7 !== 0) { cells.push({ day: cells.length - startOffset - daysInMonth + 1, otherMonth: true, m: m + 1 }); }
+
+  cells.forEach(function(cell) {
+    if (cell.otherMonth) {
+      html += '<div class="cal-day other-month">' + cell.day + '</div>';
+      return;
+    }
+    var cellDate = new Date(y, m, cell.day);
+    var isToday = sameDay(cellDate, today);
+    var isSelected = calendarSelectedDate && sameDay(cellDate, calendarSelectedDate);
+    var mmdd = (m + 1).toString().padStart(2, '0') + '-' + cell.day.toString().padStart(2, '0');
+    var isHoliday = !!slovakHolidayName(cellDate);
+    var hasBirthday = !!birthdaysByMmdd[mmdd];
+    var cls = 'cal-day' + (isToday ? ' is-today' : '') + (isSelected ? ' is-selected' : '');
+    var dots = '';
+    if (isHoliday || hasBirthday) {
+      dots = '<span class="cal-dot-row">' + (isHoliday ? '<span class="cal-dot holiday"></span>' : '') + (hasBirthday ? '<span class="cal-dot birthday"></span>' : '') + '</span>';
+    }
+    html += '<div class="' + cls + '" onclick="selectCalendarDay(' + y + ',' + m + ',' + cell.day + ')">' + cell.day + dots + '</div>';
+  });
+  html += '</div>';
+
+  var infoDate = calendarSelectedDate || today;
+  var infoMmdd = (infoDate.getMonth() + 1).toString().padStart(2, '0') + '-' + infoDate.getDate().toString().padStart(2, '0');
   var dayNames = ['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
-  var mmdd = (now.getMonth() + 1).toString().padStart(2, '0') + '-' + now.getDate().toString().padStart(2, '0');
-  var meninyName = MENINY[mmdd] || '';
-  var holiday = slovakHolidayName(now);
-  var html = '<div class="cal-date">' + dayNames[now.getDay()] + ', ' + now.getDate() + '. ' + (now.getMonth() + 1) + '.</div>';
+  var meninyName = MENINY[infoMmdd] || '';
+  var holidayName = slovakHolidayName(infoDate);
+  var birthdayPeople = birthdaysByMmdd[infoMmdd] || [];
+
+  html += '<div class="cal-info-box">';
+  html += '<div class="cal-date">' + dayNames[infoDate.getDay()] + ', ' + infoDate.getDate() + '. ' + (infoDate.getMonth() + 1) + '.</div>';
   html += '<div class="cal-sub">' + (meninyName ? 'Meniny má ' + meninyName : '') + '</div>';
-  if (holiday) { html += '<div class="cal-holiday">🎉 ' + holiday + '</div>'; }
-  var birthdayPeople = state.employees.filter(function(e) { return e.birthday === mmdd; });
-  if (birthdayPeople.length > 0) {
-    html += '<div class="cal-birthday-row">🎂 Dnes má narodeniny ' + birthdayPeople.map(function(e){return e.name;}).join(', ') + '</div>';
-  }
+  if (holidayName) { html += '<div class="cal-holiday-badge">🎉 ' + holidayName + '</div>'; }
+  if (birthdayPeople.length > 0) { html += '<div class="cal-birthday-line">🎂 Narodeniny: ' + birthdayPeople.join(', ') + '</div>'; }
+  html += '</div>';
+
   el.innerHTML = html;
 }
 
