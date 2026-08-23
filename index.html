@@ -150,7 +150,7 @@
   }
   .remember-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--terracotta); flex-shrink: 0; }
 
-  .hamburger-menu-list { display: flex; flex-direction: column; gap: 8px; }
+  .hamburger-menu-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 60dvh; }
   .hamburger-divider { height: 1px; background: var(--line); margin: 6px 4px; }
   .calendar-card {
     margin: 14px 18px 0; padding: 16px 16px 14px; border-radius: var(--radius); background: var(--espresso);
@@ -476,12 +476,12 @@
   .back-circle:active { background: var(--cream); }
 
   .clock-layout {
-    flex: 1; display: flex; flex-direction: column; justify-content: space-between;
-    padding: 0 20px 24px; overflow-y: auto;
+    flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
+    padding: 0 20px 24px; gap: 16px;
     max-width: 420px; margin: 0 auto; width: 100%;
   }
-  .clock-top { display: flex; flex-direction: column; align-items: center; padding-top: 8px; }
-  .clock-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .clock-top { display: flex; flex-direction: column; align-items: center; padding-top: 8px; flex: 1; }
+  .clock-bottom { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .clock-name-row { text-align: center; margin-top: 14px; }
   .clock-name-row .name-title { margin-bottom: 2px; }
   .clock-checkin-label { margin-top: 6px; }
@@ -2291,7 +2291,7 @@ function renderClockEarnings(emp) {
       '<span style="font-size:13px;color:var(--muted);">Zárobky</span>' +
       '<span style="font-size:15px;font-weight:700;color:var(--terracotta);">' + earn + ' €</span>' +
     '</div>';
-  card.style.cssText = 'display:block; background:var(--cream); border-radius:16px; padding:14px 16px; width:100%;';
+  card.style.cssText = 'display:block; background:var(--cream); border-radius:16px; padding:14px 16px; width:100%; min-height:90px;';
 }
 
 function openPrehladHodin() {
