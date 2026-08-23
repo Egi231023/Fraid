@@ -2257,7 +2257,7 @@ function renderClockEarnings(emp) {
     if (d.getFullYear() !== y || d.getMonth() !== m) return;
     var i = e.timeIn.split(':'), o = e.timeOut.split(':');
     var mins = (parseInt(o[0])*60+parseInt(o[1])) - (parseInt(i[0])*60+parseInt(i[1]));
-    if (mins > 0) total += mins;
+    if (mins > 0 && mins < 960) total += mins; // max 16h na zmenu, záporné ignoruj
   });
   var hrs = Math.round(total / 6) / 10;
   var earn = (hrs * emp.hodinovka).toFixed(2);
@@ -2304,7 +2304,7 @@ function renderPrehladHodin() {
       var inParts = e.timeIn.split(':');
       var outParts = e.timeOut.split(':');
       var mins = (parseInt(outParts[0]) * 60 + parseInt(outParts[1])) - (parseInt(inParts[0]) * 60 + parseInt(inParts[1]));
-      if (mins > 0) total += mins;
+      if (mins > 0 && mins < 960) total += mins;
     });
     return Math.round(total / 6) / 10; // hodiny na 1 desatinné miesto
   }
