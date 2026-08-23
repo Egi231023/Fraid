@@ -243,6 +243,15 @@
   .employee-card.locked-card { cursor: default; }
   .employee-card.locked-card:active { transform: none; }
   .poke-row { display: flex; gap: 5px; justify-content: center; margin-top: 8px; }
+  .poke-picker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .poke-picker-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 16px 10px; background: var(--cream); border: none; border-radius: 14px;
+    font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer;
+    transition: transform 0.1s ease, background 0.1s ease;
+  }
+  .poke-picker-btn .poke-emoji { font-size: 28px; }
+  .poke-picker-btn:active { background: var(--line); transform: scale(0.95); }
   .poke-btn {
     width: 28px; height: 28px; border-radius: 50%;
     background: var(--cream); border: none; font-size: 14px;
@@ -972,6 +981,18 @@
   </div>
 </div>
 
+<!-- POKE PICKER -->
+<div class="modal-overlay" id="modal-poke">
+  <div class="modal-box">
+    <h3 id="poke-target-name">Meno</h3>
+    <p style="color:var(--muted); font-size:13.5px; margin-bottom:18px;">Pošli jej rýchlu reakciu</p>
+    <div class="poke-picker-grid" id="poke-picker-grid"></div>
+    <div class="modal-actions" style="margin-top:18px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-poke')">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTES BOARD -->
 <div class="modal-overlay" id="modal-notes">
   <div class="modal-box modal-box-wide">
@@ -1174,11 +1195,23 @@ function colorForEmployee(empId) {
 }
 
 var POKE_ACTIONS = [
-  { key: 'stuch', emoji: '👉', label: 'štuchnutie' },
-  { key: 'oplut', emoji: '🤮', label: 'opľutie' },
-  { key: 'ocikat', emoji: '💦', label: 'ocikanie' },
-  { key: 'facka', emoji: '✋', label: 'facka' }
+  { key: 'pozdrav', emoji: '👋', label: 'pozdrav' },
+  { key: 'kavicka', emoji: '☕', label: 'kávička?' },
+  { key: 'super', emoji: '🙌', label: 'super práca' },
+  { key: 'pohan', emoji: '🔥', label: 'poháňaj' }
 ];
+
+function openPokeModal(targetEmpId) {
+  tapFeedback();
+  var target = state.employees.find(function(e) { return e.id === targetEmpId; });
+  if (!target) return;
+  document.getElementById('poke-target-name').textContent = target.name;
+  var grid = document.getElementById('poke-picker-grid');
+  grid.innerHTML = POKE_ACTIONS.map(function(a) {
+    return '<button class="poke-picker-btn" onclick="sendPoke(\'' + targetEmpId + '\', \'' + a.key + '\')"><span class="poke-emoji">' + a.emoji + '</span>' + a.label + '</button>';
+  }).join('');
+  openModal('modal-poke');
+}
 
 async function sendPoke(targetEmpId, actionKey) {
   tapFeedback();
@@ -1194,6 +1227,7 @@ async function sendPoke(targetEmpId, actionKey) {
     createdAt: new Date().toISOString()
   });
   if (state.notes.length > 50) state.notes = state.notes.slice(-50);
+  closeModal('modal-poke');
   await saveData();
   updateNotifBadges();
 }
@@ -1246,18 +1280,9 @@ function renderEmployeeGrid() {
     card.innerHTML = '<span class="employee-name-line" style="color:' + nameColor + '">' + nameHtml + '</span>' + moodHtml;
 
     if (lockedToEmployee && !isMe) {
-      // uzamknuté – nemôže sa prihlásiť ako niekto iný, len ju "štuchne"
+      // uzamknuté – nemôže sa prihlásiť ako niekto iný, len jej môže poslať reakciu
       card.classList.add('locked-card');
-      var pokeRow = document.createElement('div');
-      pokeRow.className = 'poke-row';
-      POKE_ACTIONS.forEach(function(a) {
-        var btn = document.createElement('button');
-        btn.className = 'poke-btn';
-        btn.textContent = a.emoji;
-        btn.onclick = function(ev) { ev.stopPropagation(); sendPoke(emp.id, a.key); };
-        pokeRow.appendChild(btn);
-      });
-      card.appendChild(pokeRow);
+      card.onclick = function() { openPokeModal(emp.id); };
     } else {
       card.onclick = function() {
         if (isMe) {
