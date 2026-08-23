@@ -1160,6 +1160,10 @@ function goHome() {
   renderEmployeeGrid();
   renderMiniGrid();
   showScreen('screen-home');
+  if (!currentEmployee) {
+    renderProfileMenuContent();
+    openModal('modal-profile-menu');
+  }
 }
 
 var NAME_COLOR_PALETTE = ['#C97F53','#4F8055','#A5623C','#5B84AA','#8B5CF6','#D9534F','#2E8B8B','#B8860B'];
