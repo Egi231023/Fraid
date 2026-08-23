@@ -154,21 +154,12 @@
     margin: 14px 18px 0; padding: 16px 16px 14px; border-radius: var(--radius); background: var(--espresso);
     color: var(--cream); box-shadow: var(--shadow);
   }
-  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .cal-header .cal-month-label { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; text-transform: capitalize; }
-  .cal-nav-btn {
-    width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.12); color: var(--cream);
-    font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: transform 0.1s ease, background 0.1s ease;
-  }
-  .cal-nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.22); }
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; opacity: 0.6; margin-bottom: 4px; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 3px; }
   .cal-day {
     position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
     font-size: 13.5px; border-radius: 50%; cursor: pointer; color: var(--cream);
   }
-  .cal-day.other-month { opacity: 0.28; cursor: default; }
   .cal-day.is-today { background: var(--terracotta); font-weight: 700; }
   .cal-day.is-selected:not(.is-today) { background: rgba(255,255,255,0.16); }
   .cal-day .cal-dot-row { position: absolute; bottom: 2px; display: flex; gap: 2px; }
@@ -1350,14 +1341,7 @@ function isWorking(empId) {
   return !!openEntry;
 }
 
-var calendarMonthOffset = 0;
 var calendarSelectedDate = null;
-
-function changeCalendarMonth(delta) {
-  calendarMonthOffset += delta;
-  calendarSelectedDate = null;
-  renderCalendarCard();
-}
 
 function selectCalendarDay(y, m, d) {
   calendarSelectedDate = new Date(y, m, d);
@@ -1368,41 +1352,23 @@ function renderCalendarCard() {
   var el = document.getElementById('calendar-card');
   if (!el) return;
   var today = new Date();
-  var viewDate = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
-  var y = viewDate.getFullYear(), m = viewDate.getMonth();
-  var monthNames = ['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
   var weekdayLabels = ['Po','Ut','St','Št','Pi','So','Ne'];
+  var dayNames = ['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
 
-  var firstDay = new Date(y, m, 1);
-  var startOffset = (firstDay.getDay() + 6) % 7; // pondelok = 0
-  var daysInMonth = new Date(y, m + 1, 0).getDate();
-  var daysInPrevMonth = new Date(y, m, 0).getDate();
-
-  var html = '<div class="cal-header">' +
-    '<button class="cal-nav-btn" onclick="changeCalendarMonth(-1)">‹</button>' +
-    '<div class="cal-month-label">' + monthNames[m] + ' ' + y + '</div>' +
-    '<button class="cal-nav-btn" onclick="changeCalendarMonth(1)">›</button>' +
-  '</div>';
-  html += '<div class="cal-weekdays">' + weekdayLabels.map(function(w) { return '<div>' + w + '</div>'; }).join('') + '</div>';
-  html += '<div class="cal-grid">';
+  var startOffset = (today.getDay() + 6) % 7;
+  var monday = new Date(today); monday.setDate(today.getDate() - startOffset);
 
   var birthdaysByMmdd = {};
   state.employees.forEach(function(e) { if (e.birthday) { birthdaysByMmdd[e.birthday] = (birthdaysByMmdd[e.birthday] || []).concat(e.name); } });
 
-  var cells = [];
-  for (var i = 0; i < startOffset; i++) { cells.push({ day: daysInPrevMonth - startOffset + 1 + i, otherMonth: true, m: m - 1 }); }
-  for (var d = 1; d <= daysInMonth; d++) { cells.push({ day: d, otherMonth: false, m: m }); }
-  while (cells.length % 7 !== 0) { cells.push({ day: cells.length - startOffset - daysInMonth + 1, otherMonth: true, m: m + 1 }); }
+  var html = '<div class="cal-weekdays">' + weekdayLabels.map(function(w) { return '<div>' + w + '</div>'; }).join('') + '</div>';
+  html += '<div class="cal-grid">';
 
-  cells.forEach(function(cell) {
-    if (cell.otherMonth) {
-      html += '<div class="cal-day other-month">' + cell.day + '</div>';
-      return;
-    }
-    var cellDate = new Date(y, m, cell.day);
+  for (var i = 0; i < 7; i++) {
+    var cellDate = new Date(monday); cellDate.setDate(monday.getDate() + i);
     var isToday = sameDay(cellDate, today);
     var isSelected = calendarSelectedDate && sameDay(cellDate, calendarSelectedDate);
-    var mmdd = (m + 1).toString().padStart(2, '0') + '-' + cell.day.toString().padStart(2, '0');
+    var mmdd = (cellDate.getMonth() + 1).toString().padStart(2, '0') + '-' + cellDate.getDate().toString().padStart(2, '0');
     var isHoliday = !!slovakHolidayName(cellDate);
     var hasBirthday = !!birthdaysByMmdd[mmdd];
     var cellDateStr = dateToStr(cellDate);
@@ -1412,13 +1378,12 @@ function renderCalendarCard() {
     if (isHoliday || hasBirthday || hasShifts) {
       dots = '<span class="cal-dot-row">' + (isHoliday ? '<span class="cal-dot holiday"></span>' : '') + (hasBirthday ? '<span class="cal-dot birthday"></span>' : '') + (hasShifts ? '<span class="cal-dot working"></span>' : '') + '</span>';
     }
-    html += '<div class="' + cls + '" onclick="selectCalendarDay(' + y + ',' + m + ',' + cell.day + ')">' + cell.day + dots + '</div>';
-  });
+    html += '<div class="' + cls + '" onclick="selectCalendarDay(' + cellDate.getFullYear() + ',' + cellDate.getMonth() + ',' + cellDate.getDate() + ')">' + cellDate.getDate() + dots + '</div>';
+  }
   html += '</div>';
 
   var infoDate = calendarSelectedDate || today;
   var infoMmdd = (infoDate.getMonth() + 1).toString().padStart(2, '0') + '-' + infoDate.getDate().toString().padStart(2, '0');
-  var dayNames = ['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
   var meninyName = MENINY[infoMmdd] || '';
   var holidayName = slovakHolidayName(infoDate);
   var birthdayPeople = birthdaysByMmdd[infoMmdd] || [];
@@ -1441,7 +1406,6 @@ function renderCalendarCard() {
   }
 
   html += '</div>';
-
   el.innerHTML = html;
 }
 
