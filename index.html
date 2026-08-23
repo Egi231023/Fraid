@@ -175,11 +175,16 @@
   .cal-day .cal-dot { width: 4px; height: 4px; border-radius: 50%; }
   .cal-day .cal-dot.holiday { background: var(--gold); }
   .cal-day .cal-dot.birthday { background: #ff9fb0; }
+  .cal-day .cal-dot.working { background: #7FD99A; }
   .cal-info-box { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.14); }
   .cal-info-box .cal-date { font-size: 14.5px; font-weight: 600; }
   .cal-info-box .cal-sub { font-size: 13px; opacity: 0.82; margin-top: 2px; }
   .cal-info-box .cal-holiday-badge { display: inline-block; margin-top: 7px; padding: 4px 10px; border-radius: 20px; background: var(--terracotta); color: var(--cream); font-size: 12px; font-weight: 600; }
   .cal-info-box .cal-birthday-line { margin-top: 6px; font-size: 13px; opacity: 0.9; }
+  .cal-working-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .cal-working-pill { padding: 5px 10px; border-radius: 20px; background: rgba(255,255,255,0.14); font-size: 12.5px; }
+  .cal-working-pill.full { background: rgba(127,217,154,0.28); }
+  .cal-working-empty { margin-top: 8px; font-size: 13px; opacity: 0.65; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
   .shift-form-input-standalone { width: 100%; padding: 12px; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; font-size: 15px; font-family: 'Inter', sans-serif; color: var(--ink); background: var(--cream-soft); }
   .hamburger-item {
@@ -604,23 +609,22 @@
 
   /* Mini week overview on home screen - day card carousel */
   .mini-week-card {
-    background: var(--cream-soft);
+    background: var(--espresso);
     border-radius: var(--radius);
-    padding: 18px 16px;
-    margin-bottom: 18px;
+    padding: 16px 16px 14px;
+    margin: 14px 18px 0;
     box-shadow: var(--shadow);
-    border: 1px solid var(--line);
   }
   .mini-week-header {
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
   }
-  .mini-week-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--espresso); }
+  .mini-week-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--cream); }
   .mini-week-nav { display: flex; gap: 6px; align-items: center; }
   .mini-nav-btn {
-    background: var(--cream); border: none; border-radius: 8px; width: 28px; height: 28px;
-    font-size: 14px; cursor: pointer; color: var(--espresso);
+    background: rgba(255,255,255,0.12); border: none; border-radius: 50%; width: 28px; height: 28px;
+    font-size: 14px; cursor: pointer; color: var(--cream); transition: transform 0.1s ease, background 0.1s ease;
   }
-  .mini-nav-btn:active { background: var(--line); }
+  .mini-nav-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
 
   .day-strip {
     display: flex;
@@ -633,25 +637,25 @@
   .day-card {
     flex: 0 0 auto;
     min-width: 78px;
-    background: var(--cream);
+    background: rgba(255,255,255,0.06);
     border-radius: 14px;
     padding: 10px 8px;
     text-align: center;
   }
-  .day-card.today { background: var(--espresso); }
-  .day-card.today .day-card-dow, .day-card.today .day-card-num { color: var(--cream); }
-  .day-card-dow { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-  .day-card-num { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; color: var(--ink); margin: 2px 0 8px; }
+  .day-card.today { background: var(--terracotta); }
+  .day-card-dow { font-size: 11px; font-weight: 700; color: rgba(250,243,233,0.55); text-transform: uppercase; letter-spacing: 0.4px; }
+  .day-card.today .day-card-dow { color: rgba(255,255,255,0.85); }
+  .day-card-num { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; color: var(--cream); margin: 2px 0 8px; }
   .day-card-people { display: flex; flex-direction: column; gap: 4px; }
   .day-pill {
     font-size: 10.5px; font-weight: 700; padding: 3px 6px; border-radius: 999px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .day-pill.full { background: var(--green-soft); color: var(--green); }
-  .day-pill.half { background: #FBEAD9; color: var(--terracotta-deep); }
-  .day-card-empty { font-size: 10.5px; color: var(--muted); opacity: 0.6; padding: 3px 0; }
+  .day-pill.full { background: rgba(79,128,85,0.35); color: #B9E0BE; }
+  .day-pill.half { background: rgba(217,168,92,0.28); color: var(--gold); }
+  .day-card-empty { font-size: 10.5px; color: rgba(250,243,233,0.4); padding: 3px 0; }
 
-  .mini-legend { display: flex; gap: 14px; margin-top: 14px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+  .mini-legend { display: flex; gap: 14px; margin-top: 14px; font-size: 11.5px; color: rgba(250,243,233,0.6); flex-wrap: wrap; }
   .mini-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
@@ -694,20 +698,6 @@
       </div>
     </div>
     <div class="calendar-card" id="calendar-card"></div>
-    <div class="mini-week-card">
-      <div class="mini-week-header">
-        <div class="mini-week-title" id="mini-week-title">Kto pracuje tento týždeň</div>
-        <div class="mini-week-nav">
-          <button class="mini-nav-btn" onclick="changeMiniWeek(-1)">‹</button>
-          <button class="mini-nav-btn" onclick="changeMiniWeek(1)">›</button>
-        </div>
-      </div>
-      <div id="mini-grid" class="day-strip"></div>
-      <div class="mini-legend">
-        <span><span class="legend-dot" style="background:var(--green);"></span> Celý deň</span>
-        <span><span class="legend-dot" style="background:var(--terracotta);"></span> Vlastný čas</span>
-      </div>
-    </div>
     <div id="employee-grid" class="employee-grid"></div>
   </div>
 
@@ -1415,10 +1405,12 @@ function renderCalendarCard() {
     var mmdd = (m + 1).toString().padStart(2, '0') + '-' + cell.day.toString().padStart(2, '0');
     var isHoliday = !!slovakHolidayName(cellDate);
     var hasBirthday = !!birthdaysByMmdd[mmdd];
+    var cellDateStr = dateToStr(cellDate);
+    var hasShifts = (state.shifts || []).some(function(s) { return s.date === cellDateStr; });
     var cls = 'cal-day' + (isToday ? ' is-today' : '') + (isSelected ? ' is-selected' : '');
     var dots = '';
-    if (isHoliday || hasBirthday) {
-      dots = '<span class="cal-dot-row">' + (isHoliday ? '<span class="cal-dot holiday"></span>' : '') + (hasBirthday ? '<span class="cal-dot birthday"></span>' : '') + '</span>';
+    if (isHoliday || hasBirthday || hasShifts) {
+      dots = '<span class="cal-dot-row">' + (isHoliday ? '<span class="cal-dot holiday"></span>' : '') + (hasBirthday ? '<span class="cal-dot birthday"></span>' : '') + (hasShifts ? '<span class="cal-dot working"></span>' : '') + '</span>';
     }
     html += '<div class="' + cls + '" onclick="selectCalendarDay(' + y + ',' + m + ',' + cell.day + ')">' + cell.day + dots + '</div>';
   });
@@ -1436,6 +1428,18 @@ function renderCalendarCard() {
   html += '<div class="cal-sub">' + (meninyName ? 'Meniny má ' + meninyName : '') + '</div>';
   if (holidayName) { html += '<div class="cal-holiday-badge">🎉 ' + holidayName + '</div>'; }
   if (birthdayPeople.length > 0) { html += '<div class="cal-birthday-line">🎂 Narodeniny: ' + birthdayPeople.join(', ') + '</div>'; }
+
+  var infoDateStr = dateToStr(infoDate);
+  var shiftsThatDay = (state.shifts || []).filter(function(s) { return s.date === infoDateStr; });
+  if (shiftsThatDay.length > 0) {
+    html += '<div class="cal-working-list">' + shiftsThatDay.map(function(s) {
+      var pillClass = s.isFullDay ? 'full' : '';
+      return '<span class="cal-working-pill ' + pillClass + '">' + s.name.split(' ')[0] + ' · ' + shiftTimeLabel(s) + '</span>';
+    }).join('') + '</div>';
+  } else {
+    html += '<div class="cal-working-empty">V tento deň nikto nemá zapísanú zmenu.</div>';
+  }
+
   html += '</div>';
 
   el.innerHTML = html;
