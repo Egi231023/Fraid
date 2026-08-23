@@ -93,10 +93,39 @@
     border: 2px solid transparent;
     overflow: hidden;
   }
-  .profile-tile:active .profile-avatar { border-color: var(--terracotta); }
+  .profile-tile:active .profile-avatar { border-color: var(--terracotta); transform: scale(0.94); }
+  .profile-avatar { transition: transform 0.12s ease, border-color 0.12s ease; }
   .profile-avatar img { width: 80%; height: 80%; object-fit: contain; }
   .profile-avatar.admin-avatar { background: var(--espresso); font-size: 32px; }
   .profile-name { font-size: 13px; font-weight: 600; color: var(--ink); text-align: center; }
+  .profile-subtitle { font-size: 13.5px; color: var(--muted); margin-top: -10px; margin-bottom: 16px; }
+  .profile-logout-link {
+    background: none; border: none; color: var(--red); font-size: 13px; font-weight: 700;
+    cursor: pointer; padding: 10px; text-align: center; width: 100%;
+  }
+  .remember-row {
+    display: flex; align-items: center; gap: 9px; margin-top: 26px;
+    font-size: 13.5px; color: var(--muted); font-weight: 600; max-width: 280px; text-align: left;
+  }
+  .remember-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--terracotta); flex-shrink: 0; }
+
+  .hamburger-menu-list { display: flex; flex-direction: column; gap: 8px; }
+  .hamburger-item {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 14px 16px; background: var(--cream); border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: left;
+  }
+  .hamburger-item .hamburger-icon { font-size: 19px; flex-shrink: 0; }
+  .hamburger-item:active { background: var(--line); }
+  .hamburger-item.logout-item { color: var(--red); }
+  .help-text-block { font-size: 14.5px; color: var(--ink); line-height: 1.6; }
+  .help-text-block b { color: var(--espresso); }
+  .help-text-block p { margin-bottom: 12px; }
+  .device-status-box {
+    background: var(--cream); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+    font-size: 14px; font-weight: 600; color: var(--ink);
+  }
+  .device-status-box .muted-line { font-size: 12.5px; color: var(--muted); font-weight: 500; margin-top: 4px; }
 
   .modal-box-wide { max-width: 420px; }
   .notes-list {
@@ -543,6 +572,7 @@
     <div class="topbar">
       <div class="logo">☕ Fraid</div>
       <div class="topbar-actions">
+        <button class="icon-btn" onclick="openHamburgerMenu()">☰</button>
         <button class="icon-btn" onclick="openNotesBoard()">🔔<span class="notif-badge" id="notif-badge-home" style="display:none;"></span></button>
         <button class="icon-btn" onclick="forceRefreshApp()">🔃</button>
         <button class="icon-btn profile-icon-btn" id="profile-icon-btn" onclick="openProfileMenu()">
@@ -582,6 +612,7 @@
       <div class="pin-display" id="pin-display"></div>
       <div class="error-msg" id="pin-error"></div>
       <div class="keypad" id="keypad"></div>
+      <label class="remember-row"><input type="checkbox" id="remember-me-checkbox"> Zapamätať si ma na tomto zariadení (nabudúce netreba PIN)</label>
     </div>
   </div>
 
@@ -785,6 +816,79 @@
   </div>
 </div>
 
+<!-- HAMBURGER MENU -->
+<div class="modal-overlay" id="modal-hamburger">
+  <div class="modal-box">
+    <h3>Menu</h3>
+    <div class="hamburger-menu-list">
+      <button class="hamburger-item" onclick="closeModal('modal-hamburger'); openIdeasBoard();"><span class="hamburger-icon">💡</span> Nápady a pripomienky</button>
+      <button class="hamburger-item" onclick="closeModal('modal-hamburger'); openModal('modal-help');"><span class="hamburger-icon">❓</span> Ako appka funguje</button>
+      <button class="hamburger-item" onclick="closeModal('modal-hamburger'); openDeviceSettings();"><span class="hamburger-icon">⚙️</span> Nastavenia zariadenia</button>
+      <button class="hamburger-item" onclick="closeModal('modal-hamburger'); openModal('modal-about');"><span class="hamburger-icon">ℹ️</span> O appke Fraid</button>
+      <button class="hamburger-item logout-item" onclick="hamburgerLogout()"><span class="hamburger-icon">🚪</span> Odhlásiť z tohto zariadenia</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-hamburger')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEAS BOARD -->
+<div class="modal-overlay" id="modal-ideas">
+  <div class="modal-box modal-box-wide">
+    <h3>💡 Nápady a pripomienky</h3>
+    <div class="notes-list" id="ideas-list"></div>
+    <textarea id="idea-input" class="note-textarea" placeholder="Napíš svoj nápad alebo pripomienku pre admina..." maxlength="400"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-ideas')">Zavrieť</button>
+      <button class="modal-btn primary" onclick="sendIdea()">Odoslať</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP / FAQ -->
+<div class="modal-overlay" id="modal-help">
+  <div class="modal-box">
+    <h3>❓ Ako appka funguje</h3>
+    <div class="help-text-block">
+      <p><b>Príchod / Odchod</b> – klikni na svoje zvieratko na obrazovke po prihlásení a potvrď.</p>
+      <p><b>Zmeny</b> – v záložke "Zmeny" si pridaj, kedy budeš pracovať.</p>
+      <p><b>Môj prehľad</b> – pozri si svoje odpracované hodiny podľa týždňa.</p>
+      <p><b>Odkazy 🔔</b> – rýchle správy pre kolegyne aj admina.</p>
+      <p><b>Nápady 💡</b> – návrh alebo pripomienku pošli adminovi cez toto menu.</p>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-help')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEVICE SETTINGS -->
+<div class="modal-overlay" id="modal-device-settings">
+  <div class="modal-box">
+    <h3>⚙️ Nastavenia zariadenia</h3>
+    <div class="device-status-box" id="device-status-box"></div>
+    <div class="modal-actions" style="margin-top:8px; flex-direction:column; gap:8px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-device-settings')">Zavrieť</button>
+      <button class="profile-logout-link" onclick="closeModal('modal-device-settings'); logoutDevice();">Odhlásiť z tohto zariadenia</button>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="modal-overlay" id="modal-about">
+  <div class="modal-box">
+    <h3>ℹ️ O appke Fraid</h3>
+    <div class="help-text-block">
+      <p>Appka na dochádzku a zmeny pre kaviareň Fraid.</p>
+      <p>Dáta sa ukladajú online (Supabase), takže sú rovnaké na všetkých zariadeniach.</p>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-about')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTES BOARD -->
 <div class="modal-overlay" id="modal-notes">
   <div class="modal-box modal-box-wide">
@@ -814,11 +918,13 @@
 <!-- PROFILE MENU -->
 <div class="modal-overlay" id="modal-profile-menu">
   <div class="modal-box">
-    <h3>Profil</h3>
-    <p id="profile-current-label" style="color:var(--muted); font-size:14px; font-weight:600; margin-bottom:16px;"></p>
+    <h3>Vitaj v Fraid ☕</h3>
+    <p class="profile-subtitle">Vyber si svoj profil</p>
+    <p id="profile-current-label" style="color:var(--muted); font-size:13px; font-weight:600; margin-bottom:16px;"></p>
     <div class="profile-grid" id="profile-grid"></div>
-    <div class="modal-actions" style="margin-top:16px;">
+    <div class="modal-actions" style="margin-top:18px; flex-direction:column; gap:8px;">
       <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-profile-menu')">Zavrieť</button>
+      <button class="profile-logout-link" onclick="logoutDevice()">Odhlásiť z tohto zariadenia</button>
     </div>
   </div>
 </div>
@@ -902,6 +1008,7 @@ async function loadData() {
     }
   }
   if (!state.notes) state.notes = [];
+  if (!state.ideas) state.ideas = [];
   await checkAutoClose();
   renderEmployeeGrid();
   renderMiniGrid();
@@ -1118,6 +1225,7 @@ function openPinScreen(emp, purpose) {
   pinBuffer = '';
   document.getElementById('pin-emp-name').textContent = emp.name;
   document.getElementById('pin-error').textContent = '';
+  document.getElementById('remember-me-checkbox').checked = false;
   renderPinDots();
   renderKeypad();
   showScreen('screen-pin');
@@ -1192,6 +1300,11 @@ function checkPin() {
   if (pinBuffer === pendingPinEmployee.pin) {
     currentEmployee = pendingPinEmployee;
     pendingPinEmployee = null;
+    if (document.getElementById('remember-me-checkbox').checked) {
+      setStayLoggedIn(currentEmployee.id);
+    } else {
+      clearStayLoggedIn();
+    }
     if (!currentEmployee.avatar) {
       pendingPinDestination = pinPurpose;
       openAvatarPicker(currentEmployee);
@@ -2054,6 +2167,31 @@ function clearRememberedProfile() {
   try { localStorage.removeItem(DEVICE_PROFILE_KEY); } catch (e) {}
 }
 
+var STAY_LOGGED_IN_KEY = 'fraid_stay_logged_in';
+
+function getStayLoggedInId() {
+  try { return localStorage.getItem(STAY_LOGGED_IN_KEY); } catch (e) { return null; }
+}
+
+function setStayLoggedIn(empId) {
+  try { localStorage.setItem(STAY_LOGGED_IN_KEY, empId); } catch (e) {}
+}
+
+function clearStayLoggedIn() {
+  try { localStorage.removeItem(STAY_LOGGED_IN_KEY); } catch (e) {}
+}
+
+function logoutDevice() {
+  clearRememberedProfile();
+  clearStayLoggedIn();
+  currentEmployee = null;
+  sessionAdminAuthenticated = false;
+  updateProfileIcon();
+  var currentLabel = document.getElementById('profile-current-label');
+  if (currentLabel) currentLabel.textContent = 'Nikto nie je vybraný';
+  renderEmployeeGrid();
+}
+
 function renderProfileGrid(targetElId) {
   var grid = document.getElementById(targetElId);
   var html = state.employees.map(function(emp) {
@@ -2088,6 +2226,7 @@ function openProfileMenu() {
 function selectProfile(empId) {
   tapFeedback();
   setRememberedProfile(empId);
+  clearStayLoggedIn();
   currentEmployee = null;
   sessionAdminAuthenticated = false;
   closeModal('modal-profile-menu');
@@ -2098,6 +2237,7 @@ function selectProfile(empId) {
 function selectAdminProfile() {
   tapFeedback();
   setRememberedProfile('admin');
+  clearStayLoggedIn();
   currentEmployee = null;
   closeModal('modal-profile-menu');
   updateProfileIcon();
@@ -2137,15 +2277,24 @@ function forceRefreshApp() {
 function tryAutoEnterProfile() {
   showScreen('screen-home');
   updateProfileIcon();
-  var remembered = getRememberedProfile();
-  if (remembered === 'admin') {
-    openAdminPinModal();
-  } else if (!remembered) {
-    openProfileMenu();
-  } else {
-    var rememberedEmp = state.employees.find(function(e) { return e.id === remembered; });
-    if (rememberedEmp) { openPinScreen(rememberedEmp, 'clock'); } else { openProfileMenu(); }
+  var stayId = getStayLoggedInId();
+  if (stayId) {
+    var stayEmp = state.employees.find(function(e) { return e.id === stayId; });
+    if (stayEmp) {
+      currentEmployee = stayEmp;
+      renderEmployeeGrid();
+      if (!stayEmp.avatar) {
+        pendingPinDestination = 'clock';
+        openAvatarPicker(stayEmp);
+      } else {
+        openClockScreen(stayEmp, 'greeting');
+      }
+      return;
+    }
+    clearStayLoggedIn();
   }
+  // admin sa nikdy neprihlasuje trvalo bez PINu - vzdy prejde cez profil menu
+  openProfileMenu();
 }
 
 var NOTES_LAST_READ_KEY = 'fraid_notes_last_read';
@@ -2206,6 +2355,71 @@ function updateNotifBadges() {
     if (recent > 0) { el.textContent = recent; el.style.display = 'flex'; }
     else { el.style.display = 'none'; }
   });
+}
+
+// ---- HAMBURGER MENU ----
+function openHamburgerMenu() {
+  tapFeedback();
+  openModal('modal-hamburger');
+}
+
+function openIdeasBoard() {
+  renderIdeasList();
+  document.getElementById('idea-input').value = '';
+  openModal('modal-ideas');
+}
+
+function renderIdeasList() {
+  if (!state.ideas) state.ideas = [];
+  var list = document.getElementById('ideas-list');
+  var sorted = state.ideas.slice().sort(function(a, b) { return b.createdAt.localeCompare(a.createdAt); });
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="empty-state">Zatiaľ žiadne nápady. Buď prvá! 💡</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(function(n) {
+    var d = new Date(n.createdAt);
+    var timeStr = d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '. ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    return '<div class="note-item"><span class="note-author">' + n.author + '</span><span class="note-time">' + timeStr + '</span><div class="note-text">' + n.text.replace(/</g, '&lt;') + '</div></div>';
+  }).join('');
+}
+
+async function sendIdea() {
+  var textEl = document.getElementById('idea-input');
+  var text = textEl.value.trim();
+  if (!text) return;
+  if (!state.ideas) state.ideas = [];
+  var authorName = currentEmployee ? currentEmployee.name : (sessionAdminAuthenticated ? 'Admin' : 'Zamestnankyňa');
+  state.ideas.push({ id: 'idea_' + Date.now(), author: authorName, text: text, createdAt: new Date().toISOString() });
+  if (state.ideas.length > 100) state.ideas = state.ideas.slice(-100);
+  textEl.value = '';
+  await saveData();
+  renderIdeasList();
+}
+
+function openDeviceSettings() {
+  var box = document.getElementById('device-status-box');
+  var remembered = getRememberedProfile();
+  var stayId = getStayLoggedInId();
+  var html = '';
+  if (stayId) {
+    var stayEmp = state.employees.find(function(e) { return e.id === stayId; });
+    html = 'Trvalo prihlásená: <b>' + (stayEmp ? stayEmp.name : '—') + '</b><div class="muted-line">Na tomto zariadení sa nebude pýtať PIN, kým sa neodhlásiš.</div>';
+  } else if (remembered === 'admin') {
+    html = 'Zapamätaný profil: <b>Admin</b><div class="muted-line">PIN sa pýta vždy (admin sa trvalo neprihlasuje).</div>';
+  } else if (remembered) {
+    var rEmp = state.employees.find(function(e) { return e.id === remembered; });
+    html = 'Zapamätaný profil: <b>' + (rEmp ? rEmp.name : '—') + '</b><div class="muted-line">PIN sa bude pýtať pri každom otvorení appky.</div>';
+  } else {
+    html = 'Na tomto zariadení nie je zapamätaný žiadny profil.';
+  }
+  box.innerHTML = html;
+  openModal('modal-device-settings');
+}
+
+function hamburgerLogout() {
+  closeModal('modal-hamburger');
+  logoutDevice();
 }
 
 setupAppIcon();
