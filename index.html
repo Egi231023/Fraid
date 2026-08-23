@@ -50,10 +50,36 @@
     flex-direction: column;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+    position: relative;
   }
 
-  .screen { flex: 1; display: none; flex-direction: column; padding: 4vw 5vw; overflow-y: auto; }
-  .screen.active { display: flex; }
+  #app-splash {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--cream);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  #app-splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .app-splash-logo { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; color: var(--espresso); }
+  .app-splash-dots { display: flex; gap: 7px; }
+  .app-splash-dots span {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--terracotta);
+    animation: splashBounce 1.1s ease-in-out infinite;
+  }
+  .app-splash-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .app-splash-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes splashBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-7px); opacity: 1; }
+  }
+
+  .screen {
+    flex: 1; display: flex; flex-direction: column; padding: 4vw 5vw; overflow-y: auto;
+    opacity: 0; pointer-events: none; position: absolute; inset: 0;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    transform: translateY(6px);
+  }
+  .screen.active { opacity: 1; pointer-events: auto; position: relative; transform: translateY(0); }
 
   .topbar {
     display: flex;
@@ -217,6 +243,13 @@
   }
 
   .pin-display { display: flex; gap: 3.5vw; margin: 6vw 0; }
+  .pin-display.shake { animation: shakePin 0.4s ease; }
+  @keyframes shakePin {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+  }
   .pin-dot {
     width: clamp(14px, 4vw, 20px); height: clamp(14px, 4vw, 20px);
     border-radius: 50%;
@@ -392,20 +425,35 @@
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(44,27,20,0.5);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 50;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(2px);
   }
-  .modal-overlay.active { display: flex; }
-  .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 90%; max-width: 360px; }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-box {
+    background: #fff; border-radius: 20px; padding: 28px; width: 90%; max-width: 360px;
+    box-shadow: 0 20px 60px rgba(44,27,20,0.28);
+    transform: scale(0.92) translateY(8px); transition: transform 0.24s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
   .modal-box h3 { font-family: 'Fraunces', serif; margin-bottom: 16px; font-size: 20px; font-weight: 600; }
   .modal-box input {
     width: 100%; padding: 14px; font-size: 16px;
     border: 1px solid rgba(58,33,31,0.2); border-radius: 8px; margin-bottom: 12px;
   }
   .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
-  .modal-btn { flex: 1; padding: 13px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .modal-btn { flex: 1; padding: 13px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.1s ease; }
+  .modal-btn:active { transform: scale(0.96); }
+  .icon-btn, .continue-btn, .add-btn-full, .gen-btn, .download-btn, .hamburger-item, .action-btn {
+    transition: transform 0.1s ease;
+  }
+  .icon-btn:active, .continue-btn:active, .add-btn-full:active, .gen-btn:active, .download-btn:active, .hamburger-item:active {
+    transform: scale(0.96);
+  }
   .modal-btn.primary { background: var(--terracotta); color: #fff; }
   .modal-btn.secondary { background: #EFE6D8; color: var(--ink); }
   .modal-btn.danger { background: var(--red); color: #fff; }
@@ -565,6 +613,11 @@
 </head>
 <body>
 
+<div id="app-splash">
+  <div class="app-splash-logo">☕ Fraid</div>
+  <div class="app-splash-dots"><span></span><span></span><span></span></div>
+</div>
+
 <div id="app">
 
   <!-- HOME SCREEN -->
@@ -622,7 +675,7 @@
       <div class="name-title">Vitaj, <span id="avatar-emp-name"></span>!</div>
       <div class="sub-title" style="margin-bottom:20px;">Vyber si svoj avatar</div>
       <div class="avatar-grid" id="avatar-grid"></div>
-      <button class="continue-btn" onclick="confirmAvatarChoice()">Continue</button>
+      <button class="continue-btn" onclick="confirmAvatarChoice()">Pokračovať</button>
     </div>
   </div>
 
@@ -760,6 +813,17 @@
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal('modal-admin-pin')">Zrušiť</button>
       <button class="modal-btn primary" onclick="checkAdminPin()">Vstúpiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP ALERT (replaces native alert()) -->
+<div class="modal-overlay" id="modal-app-alert">
+  <div class="modal-box">
+    <h3 id="app-alert-title">⚠️ Upozornenie</h3>
+    <p style="color:var(--muted); font-size:14.5px; line-height:1.5; margin-bottom:20px; white-space:pre-line;" id="app-alert-text"></p>
+    <div class="modal-actions">
+      <button class="modal-btn primary" style="width:100%;" onclick="closeModal('modal-app-alert')">Rozumiem</button>
     </div>
   </div>
 </div>
@@ -978,7 +1042,7 @@ var genWeekOffset = 0;
 
 async function loadData() {
   if (!navigator.onLine) {
-    alert('Nie si pripojený na internet 📶\n\nSkontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova).');
+    showAppAlert('Skontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova).', '📶 Nie si pripojený na internet');
     renderEmployeeGrid();
     renderMiniGrid();
     tryAutoEnterProfile();
@@ -1002,9 +1066,9 @@ async function loadData() {
   } catch (e) {
     console.error('Chyba pri načítaní', e);
     if (!navigator.onLine || (e.message && e.message.toLowerCase().indexOf('fetch') !== -1)) {
-      alert('Nie si pripojený na internet 📶\n\nSkontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova).');
+      showAppAlert('Skontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova).', '📶 Nie si pripojený na internet');
     } else {
-      alert('CHYBA pri načítaní:\n' + formatSupabaseError(e));
+      showAppAlert(formatSupabaseError(e), '⚠️ Chyba pri načítaní');
     }
   }
   if (!state.notes) state.notes = [];
@@ -1030,7 +1094,7 @@ function formatSupabaseError(e) {
 
 async function saveData() {
   if (!navigator.onLine) {
-    alert('Nie si pripojený na internet 📶\n\nSkontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova). Táto zmena sa neuložila.');
+    showAppAlert('Skontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova). Táto zmena sa neuložila.', '📶 Nie si pripojený na internet');
     return;
   }
   try {
@@ -1039,9 +1103,9 @@ async function saveData() {
   } catch (e) {
     console.error('Chyba pri ukladaní', e);
     if (!navigator.onLine || (e.message && e.message.toLowerCase().indexOf('fetch') !== -1)) {
-      alert('Nie si pripojený na internet 📶\n\nSkontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova). Táto zmena sa neuložila.');
+      showAppAlert('Skontroluj Wi-Fi alebo dáta a appku reštartuj (zatvor ju úplne a otvor znova). Táto zmena sa neuložila.', '📶 Nie si pripojený na internet');
     } else {
-      alert('CHYBA pri ukladaní:\n' + formatSupabaseError(e));
+      showAppAlert(formatSupabaseError(e), '⚠️ Chyba pri ukladaní');
     }
   }
 }
@@ -1156,7 +1220,9 @@ function renderEmployeeGrid() {
       card.appendChild(pokeRow);
     } else {
       card.onclick = function() {
-        if (isMe) { openClockScreen(emp, 'greeting'); }
+        if (isMe) {
+          if (homeTab === 'zmeny') { openShiftsScreen(emp); } else { openClockScreen(emp, 'greeting'); }
+        }
         else { openPinScreen(emp, homeTab === 'dochadzka' ? 'clock' : 'shifts'); }
       };
     }
@@ -1317,6 +1383,11 @@ function checkPin() {
     document.getElementById('pin-error').textContent = 'Nesprávny PIN, skús znova.';
     pinBuffer = '';
     renderPinDots();
+    var pinDisplayEl = document.getElementById('pin-display');
+    pinDisplayEl.classList.remove('shake');
+    void pinDisplayEl.offsetWidth;
+    pinDisplayEl.classList.add('shake');
+    try { if (navigator.vibrate) navigator.vibrate([40, 30, 40]); } catch (e) {}
   }
 }
 
@@ -1350,7 +1421,7 @@ function pickAvatar(key) {
 }
 
 async function confirmAvatarChoice() {
-  if (!selectedAvatar) { alert('Vyber si prosím zvieratko.'); return; }
+  if (!selectedAvatar) { showAppAlert('Vyber si prosím zvieratko.', '🐾 Chýba avatar'); return; }
   var emp = state.employees.find(function(e) { return e.id === currentEmployee.id; });
   if (emp) { emp.avatar = selectedAvatar; currentEmployee.avatar = selectedAvatar; }
   await saveData();
@@ -2031,7 +2102,7 @@ function renderGenWeekLabel() {
 
 async function generateRandomShifts() {
   var checked = Array.prototype.slice.call(document.querySelectorAll('.gen-emp-check:checked')).map(function(c) { return c.value; });
-  if (checked.length === 0) { alert('Zaškrtni aspoň jednu zamestnankyňu.'); return; }
+  if (checked.length === 0) { showAppAlert('Zaškrtni aspoň jednu zamestnankyňu.', '👥 Nikto nevybraný'); return; }
 
   var range = getWeekRange(genWeekOffset);
   var days = [];
@@ -2275,6 +2346,8 @@ function forceRefreshApp() {
 }
 
 function tryAutoEnterProfile() {
+  var splashEl = document.getElementById('app-splash');
+  if (splashEl) splashEl.classList.add('hidden');
   showScreen('screen-home');
   updateProfileIcon();
   var stayId = getStayLoggedInId();
@@ -2358,6 +2431,12 @@ function updateNotifBadges() {
 }
 
 // ---- HAMBURGER MENU ----
+function showAppAlert(text, title) {
+  document.getElementById('app-alert-title').textContent = title || '⚠️ Upozornenie';
+  document.getElementById('app-alert-text').textContent = text;
+  openModal('modal-app-alert');
+}
+
 function openHamburgerMenu() {
   tapFeedback();
   openModal('modal-hamburger');
