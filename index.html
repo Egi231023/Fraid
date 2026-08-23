@@ -188,6 +188,15 @@
   .cal-working-pill.full { background: rgba(127,217,154,0.28); }
   .cal-working-empty { margin-top: 8px; font-size: 13px; opacity: 0.65; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
+  .hodin-card { background: var(--cream); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .hodin-card-name { font-weight: 700; font-size: 15px; margin-bottom: 8px; color: var(--espresso); }
+  .hodin-month-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .hodin-month-row:last-child { border-bottom: none; }
+  .hodin-month-label { font-size: 13.5px; color: var(--muted); }
+  .hodin-month-vals { text-align: right; }
+  .hodin-hours { font-size: 15px; font-weight: 600; color: var(--espresso); }
+  .hodin-earn { font-size: 12.5px; color: var(--terracotta); font-weight: 600; }
+  .hodin-no-rate { font-size: 12px; color: var(--muted); font-style: italic; }
   .shift-form-input-standalone { width: 100%; padding: 12px; border: 1px solid rgba(58,33,31,0.15); border-radius: 8px; font-size: 15px; font-family: 'Inter', sans-serif; color: var(--ink); background: var(--cream-soft); }
   .hamburger-item {
     display: flex; align-items: center; gap: 12px; width: 100%;
@@ -818,7 +827,7 @@
     <div id="admin-zamestnanci-panel" style="display:none;">
       <div class="generator-card">
         <h4>⏰ Automatické ukončenie zmeny</h4>
-        <div class="gen-sub">Ak niekto zabudne kliknúť Odchod, appka mu zmenu automaticky ukončí o 16:10.</div>
+        <div class="gen-sub">Ak niekto zabudne kliknúť Odchod, appka jej zmenu automaticky ukončí o 16:10.</div>
         <label class="fullday-check"><input type="checkbox" id="autoclose-checkbox" onchange="toggleAutoClose()"> Zapnuté</label>
       </div>
       <div class="manage-list" id="manage-list"></div>
@@ -940,6 +949,7 @@
     <div class="hamburger-menu-list">
       <button class="hamburger-item" onclick="closeModal('modal-hamburger'); hamburgerOpenClock();"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span> Dochádzka</button>
       <button class="hamburger-item" onclick="closeModal('modal-hamburger'); hamburgerOpenShifts();"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg></span> Zmeny</button>
+      <button class="hamburger-item" onclick="closeModal('modal-hamburger'); openPrehladHodin();"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></span> Prehľad hodín</button>
       <button class="hamburger-item" onclick="closeModal('modal-hamburger'); comingSoon('Sklad');"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span> Sklad</button>
       <button class="hamburger-item" onclick="closeModal('modal-hamburger'); comingSoon('Tržby');"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Tržby</button>
       <button class="hamburger-item" onclick="closeModal('modal-hamburger'); comingSoon('Receptúry');"><span class="hamburger-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span> Receptúry</button>
@@ -1013,6 +1023,17 @@
   </div>
 </div>
 
+<!-- PREHLAD HODIN -->
+<div class="modal-overlay" id="modal-prehlad-hodin">
+  <div class="modal-box">
+    <h3>📊 Prehľad hodín</h3>
+    <div id="prehlad-hodin-content"></div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-prehlad-hodin')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
 <!-- POKE PICKER -->
 <div class="modal-overlay" id="modal-poke">
   <div class="modal-box">
@@ -1021,6 +1042,19 @@
     <div class="poke-picker-grid" id="poke-picker-grid"></div>
     <div class="modal-actions" style="margin-top:18px;">
       <button class="modal-btn secondary" style="width:100%;" onclick="closeModal('modal-poke')">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- NASTAVENIE HODINOVKY -->
+<div class="modal-overlay" id="modal-set-hodinovka">
+  <div class="modal-box">
+    <h3>💰 Hodinovka</h3>
+    <p id="set-hodinovka-name" style="color:var(--muted); font-size:14px; margin-bottom:14px;"></p>
+    <input type="number" id="hodinovka-input" placeholder="Suma v €/hod" min="0" max="100" step="0.5" style="width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:16px; margin-bottom:4px;">
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="modal-btn secondary" onclick="closeModal('modal-set-hodinovka')">Zrušiť</button>
+      <button class="modal-btn primary" onclick="saveHodinovka()">Uložiť</button>
     </div>
   </div>
 </div>
@@ -2171,7 +2205,77 @@ function renderManageList() {
     return;
   }
   listEl.innerHTML = state.employees.map(function(emp) {
-    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + '</span></div><div style="display:flex; gap:6px;"><button class="edit-hours-btn" onclick="openChangePin(\'' + emp.id + '\')">🔑</button><button class="del-btn" onclick="confirmDeleteEmployee(\'' + emp.id + '\', \'' + emp.name.replace(/'/g, "\\'") + '\')">Odstrániť</button></div></div>';
+    var rate = emp.hodinovka ? emp.hodinovka + ' €/h' : 'bez hodinovky';
+    return '<div class="manage-row"><div><span class="manage-row-name">' + emp.name + '</span><span class="manage-row-pin">PIN: ' + emp.pin + ' · ' + rate + '</span></div><div style="display:flex; gap:6px;"><button class="edit-hours-btn" onclick="openSetHodinovka(\'' + emp.id + '\')">💰</button><button class="edit-hours-btn" onclick="openChangePin(\'' + emp.id + '\')">🔑</button><button class="del-btn" onclick="confirmDeleteEmployee(\'' + emp.id + '\', \'' + emp.name.replace(/'/g, "\\'") + '\')">Odstrániť</button></div></div>';
+  }).join('');
+}
+
+var pendingHodinovkaEmpId = null;
+
+function openSetHodinovka(empId) {
+  var emp = state.employees.find(function(e) { return e.id === empId; });
+  if (!emp) return;
+  pendingHodinovkaEmpId = empId;
+  document.getElementById('set-hodinovka-name').textContent = emp.name;
+  document.getElementById('hodinovka-input').value = emp.hodinovka || '';
+  openModal('modal-set-hodinovka');
+}
+
+async function saveHodinovka() {
+  var val = parseFloat(document.getElementById('hodinovka-input').value);
+  var emp = state.employees.find(function(e) { return e.id === pendingHodinovkaEmpId; });
+  if (!emp) return;
+  emp.hodinovka = isNaN(val) ? null : val;
+  closeModal('modal-set-hodinovka');
+  await saveData();
+  renderManageList();
+}
+
+function openPrehladHodin() {
+  renderPrehladHodin();
+  openModal('modal-prehlad-hodin');
+}
+
+function renderPrehladHodin() {
+  var el = document.getElementById('prehlad-hodin-content');
+  var now = new Date();
+  var months = [
+    { year: now.getFullYear(), month: now.getMonth() },
+    { year: now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear(), month: now.getMonth() === 0 ? 11 : now.getMonth() - 1 }
+  ];
+  var monthNames = ['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+
+  function hoursForEmpMonth(empId, year, month) {
+    var total = 0;
+    state.entries.forEach(function(e) {
+      if (e.employeeId !== empId || !e.timeIn || !e.timeOut) return;
+      var d = new Date(e.date);
+      if (d.getFullYear() !== year || d.getMonth() !== month) return;
+      var inParts = e.timeIn.split(':');
+      var outParts = e.timeOut.split(':');
+      var mins = (parseInt(outParts[0]) * 60 + parseInt(outParts[1])) - (parseInt(inParts[0]) * 60 + parseInt(inParts[1]));
+      if (mins > 0) total += mins;
+    });
+    return Math.round(total / 6) / 10; // hodiny na 1 desatinné miesto
+  }
+
+  // Ak je prihlásená zamestnankyna — ukáže len seba
+  var empsToShow = currentEmployee
+    ? state.employees.filter(function(e) { return e.id === currentEmployee.id; })
+    : state.employees;
+
+  if (empsToShow.length === 0) { el.innerHTML = emptyStateHtml('Žiadne dáta.'); return; }
+
+  el.innerHTML = empsToShow.map(function(emp) {
+    var rows = months.map(function(m) {
+      var hrs = hoursForEmpMonth(emp.id, m.year, m.month);
+      var earn = emp.hodinovka ? (hrs * emp.hodinovka).toFixed(2) + ' €' : null;
+      return '<div class="hodin-month-row"><div class="hodin-month-label">' + monthNames[m.month] + ' ' + m.year + '</div>' +
+        '<div class="hodin-month-vals"><div class="hodin-hours">' + hrs.toFixed(1) + ' h</div>' +
+        (earn ? '<div class="hodin-earn">' + earn + '</div>' : '<div class="hodin-no-rate">hodinovka nenastavená</div>') +
+        '</div></div>';
+    }).join('');
+    return '<div class="hodin-card"><div class="hodin-card-name">' + emp.name + '</div>' + rows + '</div>';
   }).join('');
 }
 
