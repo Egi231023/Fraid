@@ -754,10 +754,10 @@
       <div class="dog-btn in" id="clock-btn" onclick="openClockConfirm()">
         <span class="big-btn-label" id="clock-btn-label">PRÍCHOD</span>
       </div>
+      <div id="clock-earnings-card" style="display:none; background:var(--cream); border-radius:14px; padding:12px 16px; margin:10px 0; text-align:left; width:100%; max-width:320px;"></div>
       <div class="action-btn-group">
         <button class="action-btn" id="mood-trigger" onclick="openMoodPicker()">Dnes sa cítim...</button>
         <button class="action-btn" onclick="openMyHistory()">📋 Môj prehľad odpracovaných dní</button>
-        <button class="action-btn" onclick="openPrehladHodin()">💰 Prehľad hodín a zárobku</button>
         <button class="action-btn" onclick="openAvatarPicker(currentEmployee, true)">🔄 Zmeniť zvieratko</button>
       </div>
     </div>
@@ -1982,6 +1982,8 @@ function openClockScreen(emp, sloganContext) {
   saveData();
 
   updateMoodTriggerText();
+  earningsMonthOffset = 0;
+  renderClockEarnings(emp);
   showScreen('screen-clock');
 }
 
@@ -2229,6 +2231,54 @@ async function saveHodinovka() {
   closeModal('modal-set-hodinovka');
   await saveData();
   renderManageList();
+}
+
+var earningsMonthOffset = 0;
+
+function changeEarningsMonth(delta) {
+  earningsMonthOffset += delta;
+  if (currentEmployee) renderClockEarnings(currentEmployee);
+}
+
+function renderClockEarnings(emp) {
+  var card = document.getElementById('clock-earnings-card');
+  if (!card) return;
+  if (!emp.hodinovka) { card.style.display = 'none'; return; }
+
+  var now = new Date();
+  var viewDate = new Date(now.getFullYear(), now.getMonth() + earningsMonthOffset, 1);
+  var y = viewDate.getFullYear(), m = viewDate.getMonth();
+  var monthNames = ['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+
+  var total = 0;
+  state.entries.forEach(function(e) {
+    if (e.employeeId !== emp.id || !e.timeIn || !e.timeOut) return;
+    var d = new Date(e.date);
+    if (d.getFullYear() !== y || d.getMonth() !== m) return;
+    var i = e.timeIn.split(':'), o = e.timeOut.split(':');
+    var mins = (parseInt(o[0])*60+parseInt(o[1])) - (parseInt(i[0])*60+parseInt(i[1]));
+    if (mins > 0) total += mins;
+  });
+  var hrs = Math.round(total / 6) / 10;
+  var earn = (hrs * emp.hodinovka).toFixed(2);
+  var isCurrentMonth = earningsMonthOffset === 0;
+  var label = isCurrentMonth ? 'Tento mesiac' : monthNames[m] + ' ' + y;
+
+  card.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+      '<button onclick="changeEarningsMonth(-1)" style="background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;padding:0 4px;">‹</button>' +
+      '<span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">💰 ' + label + '</span>' +
+      '<button onclick="changeEarningsMonth(1)" style="background:none;border:none;font-size:18px;color:' + (isCurrentMonth ? 'var(--line)' : 'var(--muted)') + ';cursor:pointer;padding:0 4px;"' + (isCurrentMonth ? ' disabled' : '') + '>›</button>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+      '<span style="font-size:13px;color:var(--muted);">Odpracované hodiny</span>' +
+      '<span style="font-size:15px;font-weight:700;color:var(--espresso);">' + hrs.toFixed(1) + ' h</span>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">' +
+      '<span style="font-size:13px;color:var(--muted);">Zárobky (' + emp.hodinovka + ' €/h)</span>' +
+      '<span style="font-size:15px;font-weight:700;color:var(--terracotta);">' + earn + ' €</span>' +
+    '</div>';
+  card.style.display = 'block';
 }
 
 function openPrehladHodin() {
