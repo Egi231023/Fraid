@@ -2365,6 +2365,8 @@ function selectProfile(empId) {
   closeModal('modal-profile-menu');
   updateProfileIcon();
   renderEmployeeGrid();
+  var emp = state.employees.find(function(e) { return e.id === empId; });
+  if (emp) { openPinScreen(emp, 'clock'); }
 }
 
 function selectAdminProfile() {
