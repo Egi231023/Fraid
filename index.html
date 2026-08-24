@@ -207,6 +207,7 @@
   .welcome-tile:nth-child(6) { animation: wFadeUp 0.5s 0.80s cubic-bezier(0.19,1,0.22,1) forwards; }
   .welcome-tile:nth-child(7) { animation: wFadeUp 0.5s 0.87s cubic-bezier(0.19,1,0.22,1) forwards; }
   .welcome-tile:nth-child(8) { animation: wFadeUp 0.5s 0.94s cubic-bezier(0.19,1,0.22,1) forwards; }
+  .welcome-tile:nth-child(n+9) { animation: wFadeUp 0.5s 1.0s cubic-bezier(0.19,1,0.22,1) forwards; }
   .welcome-tile:active .welcome-avatar { transform: scale(0.92); }
   .welcome-avatar {
     width: 72px; height: 72px; border-radius: 18px;
@@ -3095,6 +3096,12 @@ function renderProfileMenuContent() {
       '<div class="welcome-name">Admin</div>' +
     '</div>';
     gridEl.innerHTML = html;
+    setTimeout(function() {
+      gridEl.querySelectorAll('.welcome-tile').forEach(function(t) {
+        t.style.opacity = '1';
+        t.style.transform = 'none';
+      });
+    }, 1100);
   }
 }
 
