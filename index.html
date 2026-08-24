@@ -873,7 +873,7 @@
     <path d="M75 60 C60 75 50 95 45 118" stroke="#fff" stroke-width="2" opacity="0.5"/>
   </svg>
   <div class="welcome-top" id="welcome-top" style="position:relative; z-index:2;">
-    <div class="welcome-logo"><img src="{{FRAID_LOGO_ICON}}" alt="Fraid" style="width:96px;height:96px;object-fit:contain;display:block;margin:0 auto;" /></div>
+    <div class="welcome-logo"><img id="welcome-logo-img" src="" alt="Fraid" style="width:96px;height:96px;object-fit:contain;display:block;margin:0 auto;" /></div>
     <div class="welcome-tagline" id="welcome-quote">Dochádzka a zmeny</div>
   </div>
   <div class="welcome-bottom" id="welcome-bottom">
@@ -1826,7 +1826,7 @@ function openPinScreen(emp, purpose) {
   }
   document.getElementById('wpin-name').textContent = emp.name;
   document.getElementById('wpin-error').textContent = '';
-  document.getElementById('wpin-remember-checkbox').checked = false;
+  document.getElementById('wpin-remember-checkbox').checked = true;
   renderWPinDots();
   renderWKeypad();
 }
@@ -2014,7 +2014,7 @@ function checkPin() {
   if (pinBuffer === pendingPinEmployee.pin) {
     currentEmployee = pendingPinEmployee;
     pendingPinEmployee = null;
-    if (document.getElementById('remember-me-checkbox').checked) {
+    if (document.getElementById('wpin-remember-checkbox').checked) {
       setStayLoggedIn(currentEmployee.id);
     } else {
       clearStayLoggedIn();
