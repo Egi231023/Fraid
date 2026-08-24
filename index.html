@@ -1315,6 +1315,15 @@ function tapFeedback() {
 
 var SUPABASE_URL = 'https://arbvuovtqntagfpfqfgp.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_zMEBTDWawN76bzcyxPv7NA_dsJVsI-f';
+if (typeof supabase === 'undefined') {
+  document.body.innerHTML = '<div style="padding:24px;font-family:sans-serif;background:#fff;color:#111;position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">' +
+    '<div style="font-size:40px;margin-bottom:12px;">📶</div>' +
+    '<h2 style="margin:0 0 8px;">Appka sa nenačítala</h2>' +
+    '<p style="color:#666;max-width:320px;margin:0 0 20px;">Skontroluj internetové pripojenie a skús to znova.</p>' +
+    '<button onclick="location.reload()" style="padding:12px 24px;background:#5a3e2b;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:15px;">Skúsiť znova</button>' +
+    '</div>';
+  throw new Error('Supabase SDK sa nenačítal (CDN blokované alebo pomalé pripojenie)');
+}
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var ROW_ID = 'fraid-main';
 
