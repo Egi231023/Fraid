@@ -3193,6 +3193,23 @@ function setupAppIcon() {
   document.head.appendChild(manifestLink);
 }
 loadData();
+
+setTimeout(function() {
+  try {
+    var ws = document.getElementById('screen-welcome');
+    var grid = document.getElementById('welcome-profile-grid');
+    var stuck = ws && ws.classList.contains('active') && grid && grid.style.display !== 'none' && grid.children.length === 0;
+    if (stuck) {
+      document.body.insertAdjacentHTML('beforeend',
+        '<div style="position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:sans-serif;color:#fff;">' +
+        '<div style="font-size:36px;margin-bottom:10px;">⚠️</div>' +
+        '<div style="font-size:17px;font-weight:600;margin-bottom:8px;">Zamestnanci sa nenačítali</div>' +
+        '<div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:20px;max-width:280px;">Skontroluj pripojenie a skús to znova.</div>' +
+        '<button onclick="location.reload()" style="padding:12px 24px;background:#fff;color:#000;border:none;border-radius:8px;font-weight:700;">Skúsiť znova</button>' +
+        '</div>');
+    }
+  } catch (e) {}
+}, 4000);
 </script>
 
 </body>
