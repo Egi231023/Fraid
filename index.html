@@ -1408,13 +1408,10 @@ function tryAutoEnterProfile() {
   if (stayId) {
     var stayEmp = state.employees.find(function(e) { return e.id === stayId; });
     if (stayEmp) {
-      currentEmployee = stayEmp;
-      if (!stayEmp.avatar) {
-        pendingPinDestination = 'clock';
-        openAvatarPicker(stayEmp);
-      } else {
-        goHome();
-      }
+      currentEmployee = null;
+      renderProfileMenuContent();
+      openProfileMenu();
+      openPinScreen(stayEmp, 'clock');
       return;
     }
     clearStayLoggedIn();
