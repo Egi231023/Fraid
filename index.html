@@ -202,7 +202,7 @@
     font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.35);
     text-transform: uppercase; letter-spacing: 0.1em;
     margin-bottom: 18px; text-align: left;
-    opacity: 0; animation: wFadeUp 0.5s 0.4s ease forwards;
+    opacity: 1;
   }
   .welcome-profile-grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -238,7 +238,7 @@
   .welcome-locked {
     display: flex; flex-direction: column; align-items: center;
     gap: 10px; padding: 20px 0;
-    opacity: 0; animation: wFadeUp 0.5s 0.3s ease forwards;
+    opacity: 1;
   }
   .welcome-locked .welcome-avatar { width: 100px; height: 100px; border-radius: 50%; }
   .welcome-locked-name { font-size: 20px; font-weight: 700; color: #fff; }
@@ -249,7 +249,7 @@
     background: rgba(255,255,255,0.07); border: none;
     color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600;
     cursor: pointer; transition: background 0.15s;
-    opacity: 0; animation: wFadeUp 0.5s 0.9s ease forwards;
+    opacity: 1;
   }
   .welcome-logout-btn:active { background: rgba(255,255,255,0.12); }
   .profile-tile {
@@ -1294,31 +1294,6 @@
 </div>
 
 <script>
-(function autoUpdateCheck() {
-  try {
-    var VERSION_KEY = 'fraid_app_version_hash';
-    var pageUrl = window.location.origin + window.location.pathname;
-    fetch(pageUrl + '?check=' + Date.now(), { cache: 'no-store' })
-      .then(function(res) { return res.text(); })
-      .then(function(html) {
-        var hash = 0;
-        for (var i = 0; i < html.length; i++) { hash = ((hash << 5) - hash + html.charCodeAt(i)) | 0; }
-        var hashStr = String(hash);
-        var stored = localStorage.getItem(VERSION_KEY);
-        if (stored && stored !== hashStr) {
-          localStorage.setItem(VERSION_KEY, hashStr);
-          if ('caches' in window) {
-            caches.keys().then(function(names) { names.forEach(function(n) { caches.delete(n); }); });
-          }
-          window.location.replace(pageUrl + '?v=' + Date.now());
-        } else {
-          localStorage.setItem(VERSION_KEY, hashStr);
-        }
-      })
-      .catch(function() { /* offline alebo blokovane - appka bezi normalne dalej */ });
-  } catch (e) {}
-})();
-
 function playClick() {
   try {
     if (!window._audioCtx) window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
