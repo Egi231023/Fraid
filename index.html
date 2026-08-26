@@ -1693,7 +1693,7 @@ function renderEmployeeGrid() {
   var todayEmpIds = {};
   (state.shifts || []).forEach(function(sh) { if (sh.date === todayStr) { todayEmpIds[sh.employeeId] = true; } });
 
-  function buildRow(emp, isMeRow) {
+  function buildRow(emp, isMeRow, hasShiftToday) {
     var isMe = currentEmployee && emp.id === currentEmployee.id;
     var row = document.createElement('div');
     row.className = 'people-row' + (isMeRow ? ' people-row-me' : '');
@@ -1701,9 +1701,16 @@ function renderEmployeeGrid() {
     var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
     var avatarImg = ANIMALS[animalKey].emojiHappy;
     var working = isWorking(emp.id);
-    var statusText = isMeRow
-      ? (emp.mood ? (emp.mood + ' ' + moodLabel(emp.mood)) : (working ? 'V práci' : 'Mimo práce'))
-      : (working ? 'V práci teraz' : 'Dnes nepracuje');
+    var statusText;
+    if (isMeRow) {
+      statusText = emp.mood ? (emp.mood + ' ' + moodLabel(emp.mood)) : (working ? 'V práci' : 'Mimo práce');
+    } else if (working) {
+      statusText = 'V práci teraz';
+    } else if (hasShiftToday) {
+      statusText = 'Má dnes zmenu';
+    } else {
+      statusText = 'Dnes nepracuje';
+    }
     row.innerHTML =
       '<div class="people-row-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + avatarImg + '" alt="" /></div>' +
       '<div class="people-row-info">' +
@@ -1743,8 +1750,8 @@ function renderEmployeeGrid() {
   var working = others.filter(function(e) { return todayEmpIds[e.id]; });
   var notWorking = others.filter(function(e) { return !todayEmpIds[e.id]; });
 
-  buildSection('Dnes pracujú', working.map(function(e) { return buildRow(e, false); }));
-  buildSection('Dnes nepracujú', notWorking.map(function(e) { return buildRow(e, false); }));
+  buildSection('Dnes pracujú', working.map(function(e) { return buildRow(e, false, true); }));
+  buildSection('Dnes nepracujú', notWorking.map(function(e) { return buildRow(e, false, false); }));
 }
 
 function sessionAdminActive() {
