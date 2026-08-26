@@ -331,6 +331,42 @@
   .cal-working-pill.full { background: rgba(127,217,154,0.22); }
   .cal-working-empty { margin-top: 8px; font-size: 13px; opacity: 0.55; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
+
+  .people-list { padding-bottom: 24px; }
+  .people-section-title { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 22px 20px 8px; }
+  .people-section-title:first-of-type { margin-top: 18px; }
+  .people-section-card {
+    margin: 0 16px; background: #fff; border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(58,33,31,0.06); overflow: hidden;
+  }
+  .people-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    cursor: pointer; position: relative; transition: background 0.12s ease;
+    border-bottom: 1px solid rgba(58,33,31,0.07);
+  }
+  .people-row:last-child { border-bottom: none; }
+  .people-row:active { background: rgba(58,33,31,0.045); }
+  .people-row-me { background: linear-gradient(135deg, var(--cream-soft), var(--cream)); }
+  .people-row-me:active { background: var(--cream); }
+  .people-row-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .people-row-avatar img { width: 78%; height: 78%; object-fit: contain; }
+  .people-row-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+  .people-row-name { font-size: 15.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .people-row-me-tag {
+    display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--terracotta); margin-left: 4px; vertical-align: middle;
+  }
+  .people-row-status { font-size: 12.5px; color: var(--muted); }
+  .people-row-status .status-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); margin-right: 5px; vertical-align: middle;
+  }
+  .people-row-chevron { font-size: 20px; color: rgba(58,33,31,0.22); flex-shrink: 0; font-weight: 400; }
+
   .hodin-card { background: var(--cream); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
   .hodin-card-name { font-weight: 700; font-size: 15px; margin-bottom: 8px; color: var(--espresso); }
   .hodin-month-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
@@ -895,7 +931,7 @@
       </div>
     </div>
     <div class="calendar-card" id="calendar-card"></div>
-    <div id="employee-grid" class="employee-grid"></div>
+    <div id="employee-grid" class="people-list"></div>
   </div>
 
   <!-- PIN ENTRY SCREEN -->
@@ -1644,7 +1680,7 @@ function renderEmployeeGrid() {
   var grid = document.getElementById('employee-grid');
   grid.innerHTML = '';
   if (state.employees.length === 0) {
-    grid.innerHTML = emptyStateHtml('Zatiaľ nie sú pridané žiadne zamestnankyne. Požiadaj admina, nech ťa pridá.', 'grid-column:1/-1;');
+    grid.innerHTML = emptyStateHtml('Zatiaľ nie sú pridané žiadne zamestnankyne. Požiadaj admina, nech ťa pridá.', '');
     return;
   }
 
@@ -1653,69 +1689,58 @@ function renderEmployeeGrid() {
   var todayEmpIds = {};
   (state.shifts || []).forEach(function(sh) { if (sh.date === todayStr) { todayEmpIds[sh.employeeId] = true; } });
 
-  function buildCard(emp, big) {
+  function buildRow(emp, isMeRow) {
     var isMe = currentEmployee && emp.id === currentEmployee.id;
-    var card = document.createElement('div');
-    card.className = 'employee-card' + (isWorking(emp.id) ? ' working' : '') + (big ? ' employee-card-me' : '');
-    var nameColor = colorForEmployee(emp.id);
-    var nameHtml = (isWorking(emp.id) ? '<span class="status-dot"></span>' : '') + emp.name;
-    var moodHtml = emp.mood ? '<span class="employee-mood-line">' + emp.mood + ' ' + moodLabel(emp.mood) + '</span>' : '';
-    if (big) {
-      var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
-      var avatarImg = ANIMALS[animalKey].emojiHappy;
-      card.innerHTML = '<div class="employee-card-me-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + avatarImg + '" alt=""></div>' +
-        '<div class="employee-card-me-info"><span class="employee-card-me-label">Ty</span><span class="employee-name-line" style="color:' + nameColor + '">' + nameHtml + '</span>' + moodHtml + '</div>';
-    } else {
-      card.innerHTML = '<span class="employee-name-line" style="color:' + nameColor + '">' + nameHtml + '</span>' + moodHtml;
-    }
+    var row = document.createElement('div');
+    row.className = 'people-row' + (isMeRow ? ' people-row-me' : '');
+    var nameColor = isMeRow ? '' : colorForEmployee(emp.id);
+    var animalKey = emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
+    var avatarImg = ANIMALS[animalKey].emojiHappy;
+    var working = isWorking(emp.id);
+    var statusText = isMeRow
+      ? (emp.mood ? (emp.mood + ' ' + moodLabel(emp.mood)) : (working ? 'V práci' : 'Mimo práce'))
+      : (working ? 'V práci teraz' : 'Dnes nepracuje');
+    row.innerHTML =
+      '<div class="people-row-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + avatarImg + '" alt="" /></div>' +
+      '<div class="people-row-info">' +
+        '<span class="people-row-name"' + (nameColor ? ' style="color:' + nameColor + '"' : '') + '>' + emp.name + (isMeRow ? ' <span class="people-row-me-tag">Ty</span>' : '') + '</span>' +
+        '<span class="people-row-status">' + (working ? '<span class="status-dot"></span>' : '') + statusText + '</span>' +
+      '</div>' +
+      '<span class="people-row-chevron">›</span>';
 
     if (lockedToEmployee && !isMe) {
-      card.classList.add('locked-card');
-      card.onclick = function() { openPokeModal(emp.id); };
+      row.onclick = function() { openPokeModal(emp.id); };
     } else {
-      card.onclick = function() {
+      row.onclick = function() {
         if (isMe) { openClockScreen(emp, 'greeting'); }
         else { openPinScreen(emp, 'clock'); }
       };
     }
-    return card;
+    return row;
+  }
+
+  function buildSection(title, rows) {
+    if (rows.length === 0) return;
+    var titleEl = document.createElement('div');
+    titleEl.className = 'people-section-title';
+    titleEl.textContent = title;
+    grid.appendChild(titleEl);
+    var card = document.createElement('div');
+    card.className = 'people-section-card';
+    rows.forEach(function(r) { card.appendChild(r); });
+    grid.appendChild(card);
   }
 
   if (currentEmployee) {
-    var meTitle = document.createElement('div');
-    meTitle.className = 'employee-section-title';
-    meTitle.textContent = 'Môj profil';
-    grid.appendChild(meTitle);
-    var meWrap = document.createElement('div');
-    meWrap.style.marginBottom = '4px';
-    meWrap.appendChild(buildCard(currentEmployee, true));
-    grid.appendChild(meWrap);
+    buildSection('Môj profil', [buildRow(currentEmployee, true)]);
   }
 
   var others = state.employees.filter(function(e) { return !currentEmployee || e.id !== currentEmployee.id; });
   var working = others.filter(function(e) { return todayEmpIds[e.id]; });
   var notWorking = others.filter(function(e) { return !todayEmpIds[e.id]; });
 
-  if (working.length > 0) {
-    var wTitle = document.createElement('div');
-    wTitle.className = 'employee-section-title';
-    wTitle.textContent = 'Dnes pracujú';
-    grid.appendChild(wTitle);
-    var wGrid = document.createElement('div');
-    wGrid.className = 'employee-grid';
-    working.forEach(function(e) { wGrid.appendChild(buildCard(e)); });
-    grid.appendChild(wGrid);
-  }
-  if (notWorking.length > 0) {
-    var nTitle = document.createElement('div');
-    nTitle.className = 'employee-section-title';
-    nTitle.textContent = 'Dnes nepracujú';
-    grid.appendChild(nTitle);
-    var nGrid = document.createElement('div');
-    nGrid.className = 'employee-grid';
-    notWorking.forEach(function(e) { nGrid.appendChild(buildCard(e)); });
-    grid.appendChild(nGrid);
-  }
+  buildSection('Dnes pracujú', working.map(function(e) { return buildRow(e, false); }));
+  buildSection('Dnes nepracujú', notWorking.map(function(e) { return buildRow(e, false); }));
 }
 
 function sessionAdminActive() {
