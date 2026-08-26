@@ -90,6 +90,38 @@
     padding-bottom: 18px;
   }
   .topbar-actions { display: flex; gap: 8px; }
+  .topbar-v2 { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; }
+  .topbar-v2-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-v2-logo { width: 34px; height: 34px; object-fit: contain; }
+  .topbar-v2-titles { display: flex; flex-direction: column; gap: 1px; }
+  .topbar-v2-name { font-family: 'Fraunces', serif; font-size: clamp(19px, 5.5vw, 22px); font-weight: 600; color: var(--espresso); letter-spacing: -0.2px; line-height: 1; }
+  .topbar-v2-tagline { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+  .topbar-v2-avatar-btn { position: relative; }
+  .topbar-v2-avatar-dot {
+    position: absolute; bottom: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--green); border: 2px solid #fff;
+  }
+
+  .bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    max-width: 480px; margin: 0 auto;
+    display: flex; justify-content: space-around; align-items: center;
+    background: #fff; border-top-left-radius: 22px; border-top-right-radius: 22px;
+    padding: 10px 4px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(58,33,31,0.08);
+  }
+  .bottom-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 10.5px; font-weight: 600; padding: 6px 8px; border-radius: 12px;
+    transition: color 0.15s ease, background 0.15s ease; flex: 1;
+  }
+  .bottom-nav-item.active { color: var(--terracotta); background: var(--cream); }
+  .bottom-nav-item-badge-wrap { position: relative; }
+  .bottom-nav-badge {
+    position: absolute; top: -10px; right: -8px; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--terracotta);
+  }
   .logo { font-family: 'Fraunces', serif; font-size: clamp(19px, 5.5vw, 22px); font-weight: 600; color: var(--espresso); letter-spacing: -0.2px; }
   .icon-btn {
     background: #fff; border: none; font-size: 18px; cursor: pointer;
@@ -293,71 +325,93 @@
   .hamburger-menu-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 60dvh; }
   .hamburger-divider { height: 1px; background: var(--line); margin: 6px 4px; }
   .calendar-card {
-    margin: 14px 18px 0; padding: 20px 18px 18px; border-radius: 24px;
-    background: linear-gradient(155deg, #E8A374, var(--terracotta) 55%, var(--terracotta-deep));
-    color: #fff; box-shadow: 0 10px 26px rgba(201,127,83,0.35), 0 1px 3px rgba(58,33,31,0.08);
+    margin: 14px 18px 0; padding: 22px 20px 20px; border-radius: 26px;
+    background: linear-gradient(165deg, var(--espresso), var(--espresso-deep));
+    color: #fff; box-shadow: 0 12px 28px rgba(58,33,31,0.28), 0 1px 3px rgba(58,33,31,0.1);
     position: relative;
   }
+  .cal-greeting { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+  .cal-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .cal-week-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .cal-week-sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .cal-today-pill {
+    display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 20px;
+    background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: background 0.15s ease;
+  }
+  .cal-today-pill:active { background: rgba(255,255,255,0.22); }
   .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .cal-header .cal-month-label { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+  .cal-header .cal-month-label { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; opacity: 0.85; }
   .cal-nav-btn {
-    width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,0.22); color: #fff;
-    font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: #fff;
+    font-size: 13px; display: flex; align-items: center; justify-content: center; cursor: pointer;
     transition: transform 0.15s cubic-bezier(0.19,1,0.22,1), background 0.15s ease;
   }
-  .cal-nav-btn:active { transform: scale(0.86); background: rgba(255,255,255,0.34); }
-  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.72; margin-bottom: 9px; }
+  .cal-nav-btn:active { transform: scale(0.86); background: rgba(255,255,255,0.2); }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.5; margin-bottom: 9px; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .cal-day {
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 9px 2px 11px; border-radius: 14px; cursor: pointer; color: #fff;
-    font-size: 14.5px; font-weight: 500; background: rgba(255,255,255,0.16);
+    font-size: 14.5px; font-weight: 500; background: transparent;
     min-height: 50px; transition: background 0.16s ease, transform 0.1s ease;
   }
   .cal-day:active { transform: scale(0.93); }
-  .cal-day.is-today { background: var(--espresso); font-weight: 700; box-shadow: 0 3px 10px rgba(58,33,31,0.4); }
-  .cal-day.is-selected:not(.is-today) { background: rgba(255,255,255,0.32); }
-  .cal-day .cal-dow { font-size: 9.5px; opacity: 0.78; margin-bottom: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; }
+  .cal-day.is-today { background: var(--terracotta); font-weight: 700; box-shadow: 0 3px 10px rgba(201,127,83,0.4); }
+  .cal-day.is-selected:not(.is-today) { background: rgba(255,255,255,0.12); }
+  .cal-day .cal-dow { font-size: 9.5px; opacity: 0.5; margin-bottom: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; }
   .cal-day .cal-dot-row { position: absolute; bottom: 5px; display: flex; gap: 2.5px; }
   .cal-day .cal-dot { width: 4px; height: 4px; border-radius: 50%; }
   .cal-day .cal-dot.holiday { background: var(--gold); }
   .cal-day .cal-dot.birthday { background: #ffe3ea; }
-  .cal-day .cal-dot.working { background: #d9ffe4; }
-  .cal-info-box { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.25); }
-  .cal-info-box .cal-date { font-size: 14.5px; font-weight: 600; letter-spacing: -0.1px; }
-  .cal-info-box .cal-sub { font-size: 13px; opacity: 0.85; margin-top: 2px; }
-  .cal-info-box .cal-holiday-badge { display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 20px; background: var(--espresso); color: #fff; font-size: 12px; font-weight: 600; }
-  .cal-info-box .cal-birthday-line { margin-top: 6px; font-size: 13px; opacity: 0.92; }
+  .cal-day .cal-dot.working { background: #7FD99A; }
+  .cal-info-box { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .cal-info-box .cal-date { font-size: 15px; font-weight: 600; letter-spacing: -0.1px; }
+  .cal-info-box .cal-sub { font-size: 13px; opacity: 0.6; margin-top: 2px; }
+  .cal-info-box .cal-holiday-badge { display: inline-block; margin-top: 8px; padding: 5px 12px; border-radius: 20px; background: var(--terracotta); color: #fff; font-size: 12px; font-weight: 600; }
+  .cal-info-box .cal-birthday-line { margin-top: 6px; font-size: 13px; opacity: 0.8; }
+  .cal-shift-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .cal-shift-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px;
+    background: rgba(255,255,255,0.06); cursor: pointer; transition: background 0.12s ease;
+  }
+  .cal-shift-row:active { background: rgba(255,255,255,0.12); }
+  .cal-shift-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .cal-shift-avatar img { width: 78%; height: 78%; object-fit: contain; }
+  .cal-shift-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .cal-shift-name { font-size: 14.5px; font-weight: 600; }
+  .cal-shift-time { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .cal-shift-chevron { font-size: 18px; color: rgba(255,255,255,0.3); }
   .cal-working-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 7px; }
   .cal-working-pill { padding: 6px 13px; border-radius: 20px; background: rgba(255,255,255,0.2); font-size: 12.5px; font-weight: 500; }
   .cal-working-pill.full { background: rgba(217,255,228,0.35); }
   .cal-working-empty { margin-top: 8px; font-size: 13px; opacity: 0.6; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
 
-  .people-list { padding-bottom: 24px; }
+  .people-list { padding-bottom: 90px; }
 
   .me-hero-card {
     margin: 16px 18px 0; padding: 16px 18px; border-radius: 22px; cursor: pointer;
     display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(135deg, var(--espresso), var(--espresso-deep));
-    box-shadow: 0 8px 20px rgba(58,33,31,0.22); transition: transform 0.12s ease;
+    background: #fff; border: 1.5px solid var(--terracotta);
+    box-shadow: 0 4px 14px rgba(201,127,83,0.14); transition: transform 0.12s ease;
   }
   .me-hero-card:active { transform: scale(0.98); }
   .me-hero-avatar {
     width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.16);
+    box-shadow: 0 0 0 3px var(--cream);
   }
   .me-hero-avatar img { width: 78%; height: 78%; object-fit: contain; }
   .me-hero-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .me-hero-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gold); }
-  .me-hero-name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: #fff; }
-  .me-hero-status { font-size: 12.5px; color: rgba(255,255,255,0.65); }
+  .me-hero-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--terracotta); }
+  .me-hero-name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--ink); }
+  .me-hero-status { font-size: 12.5px; color: var(--muted); }
   .me-hero-status .status-dot {
     display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    background: #7FD99A; margin-right: 5px; vertical-align: middle;
+    background: var(--green); margin-right: 5px; vertical-align: middle;
   }
-  .me-hero-chevron { font-size: 22px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+  .me-hero-chevron { font-size: 22px; color: rgba(58,33,31,0.22); flex-shrink: 0; }
 
   .people-section-title { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase;
     letter-spacing: 0.06em; margin: 22px 20px 10px; }
@@ -367,22 +421,24 @@
   }
   .people-tile {
     display: flex; flex-direction: column; align-items: center; gap: 6px;
-    background: #fff; border-radius: 18px; padding: 14px 6px 12px; cursor: pointer;
-    box-shadow: 0 1px 3px rgba(58,33,31,0.07); transition: transform 0.12s ease, box-shadow 0.12s ease;
+    background: var(--cream); border-radius: 18px; padding: 14px 6px 12px; cursor: pointer;
+    border: 1.5px solid transparent; transition: transform 0.12s ease, background 0.12s ease;
   }
   .people-tile:active { transform: scale(0.95); }
-  .people-tile-active { box-shadow: 0 0 0 2px var(--green) inset, 0 1px 3px rgba(58,33,31,0.07); }
+  .people-tile-active { background: var(--green-soft); border-color: var(--green); }
   .people-tile-avatar {
     width: 48px; height: 48px; border-radius: 50%; position: relative;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
+    box-shadow: 0 0 0 3px #fff;
   }
   .people-tile-avatar img { width: 78%; height: 78%; object-fit: contain; }
   .people-tile-dot {
     position: absolute; bottom: -1px; right: -1px; width: 12px; height: 12px; border-radius: 50%;
     background: var(--green); border: 2.5px solid #fff;
   }
-  .people-tile-name { font-size: 13px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .people-tile-name { font-size: 13px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; color: var(--ink); }
   .people-tile-status { font-size: 10.5px; color: var(--muted); text-align: center; }
+  .people-tile-active .people-tile-status { color: var(--green); font-weight: 600; }
 
   .hodin-card { background: var(--cream); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
   .hodin-card-name { font-weight: 700; font-size: 15px; margin-bottom: 8px; color: var(--espresso); }
@@ -937,21 +993,47 @@
 </div>
 
   <div class="screen" id="screen-home">
-    <svg width="150" height="190" viewBox="0 0 150 190" fill="none" style="position:absolute; bottom:0; right:-10px; opacity:0.05; pointer-events:none; z-index:0;">
-      <path d="M75 190 C75 140 60 100 35 75 C15 55 10 30 25 15 C38 2 58 5 62 22 C65 35 55 42 45 38 C50 50 62 55 72 48 C65 62 65 80 75 95 C85 80 85 62 78 48 C88 55 100 50 105 38 C95 42 85 35 88 22 C92 5 112 2 125 15 C140 30 135 55 115 75 C90 100 75 140 75 190 Z" fill="var(--espresso)"/>
-    </svg>
-    <div class="topbar">
-      <div class="logo" style="display:flex; align-items:center; gap:8px;"><img id="topbar-logo-img" src="" alt="" style="width:26px;height:26px;object-fit:contain;" />Fraid</div>
+    <div class="topbar-v2">
+      <div class="topbar-v2-brand">
+        <img id="topbar-logo-img" src="" alt="" class="topbar-v2-logo" />
+        <div class="topbar-v2-titles">
+          <span class="topbar-v2-name">Fraid</span>
+          <span class="topbar-v2-tagline">Káva. Ľudia. Atmosféra.</span>
+        </div>
+      </div>
       <div class="topbar-actions">
-        <button class="icon-btn" onclick="openHamburgerMenu()"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg></button>
         <button class="icon-btn" onclick="openNotesBoard()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notif-badge-home" style="display:none;"></span></button>
-        <button class="icon-btn profile-icon-btn" id="profile-icon-btn" onclick="openProfileMenu()">
+        <button class="icon-btn profile-icon-btn topbar-v2-avatar-btn" id="profile-icon-btn" onclick="openProfileMenu()">
           <span id="profile-icon-inner"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+          <span class="topbar-v2-avatar-dot"></span>
         </button>
       </div>
     </div>
     <div class="calendar-card" id="calendar-card"></div>
     <div id="employee-grid" class="people-list"></div>
+  </div>
+
+  <div class="bottom-nav" id="bottom-nav" style="display:none;">
+    <button class="bottom-nav-item active" data-tab="home" onclick="switchBottomTab('home')">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span>Domov</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="shifts" onclick="switchBottomTab('shifts')">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      <span>Zmeny</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="team" onclick="switchBottomTab('team')">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><circle cx="17" cy="9" r="2.7"/><path d="M15.5 14c2.7 0.3 4.5 2.3 4.5 6"/></svg>
+      <span>Tím</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="messages" onclick="switchBottomTab('messages')">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="bottom-nav-item-badge-wrap">Správy<span class="bottom-nav-badge" id="bottom-nav-msg-badge" style="display:none;"></span></span>
+    </button>
+    <button class="bottom-nav-item" data-tab="settings" onclick="switchBottomTab('settings')">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Nastavenia</span>
+    </button>
   </div>
 
   <!-- PIN ENTRY SCREEN -->
@@ -1527,6 +1609,8 @@ async function checkAutoClose() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
+  var bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav) bottomNav.style.display = (id === 'screen-home') ? 'flex' : 'none';
 }
 
 function goHome() {
@@ -1642,8 +1726,18 @@ function renderCalendarCard() {
   var birthdaysByMmdd = {};
   state.employees.forEach(function(e) { if (e.birthday) { birthdaysByMmdd[e.birthday] = (birthdaysByMmdd[e.birthday] || []).concat(e.name); } });
 
+  var greetName = currentEmployee ? currentEmployee.name : '';
+  var html = '';
+  if (greetName) {
+    html += '<div class="cal-greeting">Ahoj, ' + greetName + ' 👋</div>';
+  }
+  html += '<div class="cal-title-row">' +
+    '<div><div class="cal-week-title">Tento týždeň</div><div class="cal-week-sub">Prehľad tvojho rozvrhu</div></div>' +
+    '<button class="cal-today-pill" onclick="calendarWeekOffset=0; calendarSelectedDate=null; renderCalendarCard();">Dnes 📅</button>' +
+  '</div>';
+
   var weekLabel = calendarWeekOffset === 0 ? 'Tento týždeň' : (monday.getDate() + '.' + (monday.getMonth()+1) + '. – ' + sunday.getDate() + '.' + (sunday.getMonth()+1) + '.');
-  var html = '<div class="cal-header">' +
+  html += '<div class="cal-header">' +
     '<button class="cal-nav-btn" onclick="changeCalendarWeek(-1)">‹</button>' +
     '<div class="cal-month-label">' + weekLabel + '</div>' +
     '<button class="cal-nav-btn" onclick="changeCalendarWeek(1)">›</button>' +
@@ -1683,9 +1777,13 @@ function renderCalendarCard() {
   var infoDateStr = dateToStr(infoDate);
   var shiftsThatDay = (state.shifts || []).filter(function(s) { return s.date === infoDateStr; });
   if (shiftsThatDay.length > 0) {
-    html += '<div class="cal-working-list">' + shiftsThatDay.map(function(s) {
-      var pillClass = s.isFullDay ? 'full' : '';
-      return '<span class="cal-working-pill ' + pillClass + '">' + s.name.split(' ')[0] + ' · ' + shiftTimeLabel(s) + '</span>';
+    html += '<div class="cal-shift-list">' + shiftsThatDay.map(function(s) {
+      var emp = state.employees.find(function(e) { return e.name === s.name; });
+      var animalKey = emp && emp.avatar && ANIMALS[emp.avatar] ? emp.avatar : 'pudlik';
+      var avatarImg = ANIMALS[animalKey].emojiHappy;
+      return '<div class="cal-shift-row"><div class="cal-shift-avatar" style="background:' + ANIMALS[animalKey].color + '"><img src="' + avatarImg + '" alt="" /></div>' +
+        '<div class="cal-shift-info"><span class="cal-shift-name">' + s.name + '</span><span class="cal-shift-time">' + shiftTimeLabel(s) + '</span></div>' +
+        '<span class="cal-shift-chevron">›</span></div>';
     }).join('') + '</div>';
   } else {
     html += '<div class="cal-working-empty">V tento deň nikto nemá zapísanú zmenu.</div>';
@@ -3031,6 +3129,29 @@ function showAppAlert(text, title) {
 }
 
 // ---- HAMBURGER MENU ----
+function switchBottomTab(tab) {
+  tapFeedback();
+  document.querySelectorAll('.bottom-nav-item').forEach(function(b) { b.classList.remove('active'); });
+  var btn = document.querySelector('.bottom-nav-item[data-tab="' + tab + '"]');
+  if (btn) btn.classList.add('active');
+  if (tab === 'home') {
+    goHome();
+  } else if (tab === 'shifts') {
+    hamburgerOpenShifts();
+  } else if (tab === 'team') {
+    openProfileMenu();
+  } else if (tab === 'messages') {
+    openNotesBoard();
+  } else if (tab === 'settings') {
+    openHamburgerMenu();
+  }
+  setTimeout(function() {
+    document.querySelectorAll('.bottom-nav-item').forEach(function(b) { b.classList.remove('active'); });
+    var homeBtn = document.querySelector('.bottom-nav-item[data-tab="home"]');
+    if (homeBtn) homeBtn.classList.add('active');
+  }, 400);
+}
+
 function openHamburgerMenu() {
   tapFeedback();
   openModal('modal-hamburger');
