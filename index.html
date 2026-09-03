@@ -388,36 +388,36 @@
   .cal-working-empty { margin-top: 8px; font-size: 13px; opacity: 0.6; }
   .employee-section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 18px 6px; }
 
-  .people-list { padding-bottom: 90px; }
+  .people-list { padding-bottom: 120px; }
 
   .me-hero-card {
-    margin: 16px 18px 0; padding: 18px 20px; border-radius: 24px; cursor: pointer;
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin: 16px 18px 0; padding: 16px 16px; border-radius: 24px; cursor: pointer;
+    display: flex; align-items: center; gap: 12px;
     background: #fff; box-shadow: 0 4px 16px rgba(58,33,31,0.08);
   }
   .me-hero-avatar-wrap { position: relative; flex-shrink: 0; }
   .me-hero-avatar {
-    width: 58px; height: 58px; border-radius: 50%;
+    width: 54px; height: 54px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
   }
   .me-hero-avatar img { width: 78%; height: 78%; object-fit: contain; }
   .me-hero-cam {
-    position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; border-radius: 50%;
+    position: absolute; bottom: -2px; right: -2px; width: 21px; height: 21px; border-radius: 50%;
     background: var(--espresso); color: #fff; display: flex; align-items: center; justify-content: center;
     border: 2px solid #fff;
   }
-  .me-hero-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-  .me-hero-name { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; color: var(--ink); }
-  .me-hero-status { font-size: 13px; color: var(--muted); }
+  .me-hero-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .me-hero-name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .me-hero-status { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .me-hero-tag {
-    display: inline-block; width: fit-content; margin-top: 2px; padding: 2px 9px; border-radius: 10px;
-    background: var(--cream); color: var(--terracotta); font-size: 10.5px; font-weight: 700;
+    display: inline-block; width: fit-content; margin-top: 3px; padding: 2px 8px; border-radius: 10px;
+    background: var(--cream); color: var(--terracotta); font-size: 10px; font-weight: 700;
     letter-spacing: 0.04em;
   }
   .me-hero-btn {
-    padding: 10px 16px; border-radius: 20px; border: none; background: var(--cream);
-    color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
-    margin-left: auto;
+    padding: 9px 14px; border-radius: 20px; border: none; background: var(--cream);
+    color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .people-section-title { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase;
@@ -1743,19 +1743,20 @@ function renderCalendarCard() {
   state.employees.forEach(function(e) { if (e.birthday) { birthdaysByMmdd[e.birthday] = (birthdaysByMmdd[e.birthday] || []).concat(e.name); } });
 
   var greetName = currentEmployee ? currentEmployee.name : '';
+  var weekTitle = calendarWeekOffset === 0 ? 'Tento týždeň' : (calendarWeekOffset === 1 ? 'Budúci týždeň' : (calendarWeekOffset === -1 ? 'Minulý týždeň' : monday.getDate() + '. ' + (monday.getMonth()+1) + '. – ' + sunday.getDate() + '. ' + (sunday.getMonth()+1) + '.'));
+  var weekRange = monday.getDate() + '. ' + (monday.getMonth()+1) + '. – ' + sunday.getDate() + '. ' + (sunday.getMonth()+1) + '.';
   var html = '';
   if (greetName) {
     html += '<div class="cal-greeting">Ahoj, ' + greetName + ' 👋</div>';
   }
   html += '<div class="cal-title-row">' +
-    '<div><div class="cal-week-title">Tento týždeň</div><div class="cal-week-sub">Prehľad tvojho rozvrhu</div></div>' +
-    '<button class="cal-today-pill" onclick="calendarWeekOffset=0; calendarSelectedDate=null; renderCalendarCard();">Dnes 📅</button>' +
+    '<div><div class="cal-week-title">' + weekTitle + '</div><div class="cal-week-sub">Prehľad tvojho rozvrhu</div></div>' +
+    (calendarWeekOffset !== 0 ? '<button class="cal-today-pill" onclick="calendarWeekOffset=0; calendarSelectedDate=null; renderCalendarCard();">Dnes</button>' : '') +
   '</div>';
 
-  var weekLabel = calendarWeekOffset === 0 ? 'Tento týždeň' : (monday.getDate() + '.' + (monday.getMonth()+1) + '. – ' + sunday.getDate() + '.' + (sunday.getMonth()+1) + '.');
   html += '<div class="cal-header">' +
     '<button class="cal-nav-btn" onclick="changeCalendarWeek(-1)">‹</button>' +
-    '<div class="cal-month-label">' + weekLabel + '</div>' +
+    '<div class="cal-month-label">' + weekRange + '</div>' +
     '<button class="cal-nav-btn" onclick="changeCalendarWeek(1)">›</button>' +
   '</div>';
   html += '<div class="cal-grid">';
@@ -3144,9 +3145,11 @@ function updateNotifBadges() {
   ['notif-badge-home', 'notif-badge-clock'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
-    if (recent > 0) { el.textContent = recent; el.style.display = 'flex'; }
+    if (recent > 0) { el.textContent = recent > 9 ? '9+' : recent; el.style.display = 'flex'; }
     else { el.style.display = 'none'; }
   });
+  var navBadge = document.getElementById('bottom-nav-msg-badge');
+  if (navBadge) { navBadge.style.display = recent > 0 ? 'block' : 'none'; }
 }
 
 function showAppAlert(text, title) {
@@ -3166,7 +3169,11 @@ function switchBottomTab(tab) {
   } else if (tab === 'shifts') {
     hamburgerOpenShifts();
   } else if (tab === 'team') {
-    openProfileMenu();
+    goHome();
+    setTimeout(function() {
+      var grid = document.getElementById('employee-grid');
+      if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   } else if (tab === 'messages') {
     openNotesBoard();
   } else if (tab === 'settings') {
