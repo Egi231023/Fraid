@@ -553,6 +553,23 @@
   .sales-form-date { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
 
   /* ---- RECEPTY ---- */
+  .recipes-add-btn {
+    margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: var(--espresso); color: #fff; font-size: 21px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    line-height: 1; padding-bottom: 2px;
+  }
+  #recipes-screen-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 30px; }
+  .recipe-order-badge {
+    position: absolute; top: 10px; left: 10px; padding: 4px 9px; border-radius: 10px;
+    background: rgba(0,0,0,0.55); color: #fff; font-size: 11.5px; font-weight: 700;
+    backdrop-filter: blur(4px);
+  }
+  .recipe-card { position: relative; }
+  .recipe-detail-actions-row { display: flex; gap: 10px; margin-top: 20px; padding-bottom: 30px; }
+  .recipe-detail-actions-row .modal-btn { flex: 1; }
+  #recipe-detail-screen-content { padding-bottom: 4px; }
+
   .recipes-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
   .recipe-card {
     background: var(--cream); border-radius: 18px; cursor: pointer; overflow: hidden;
@@ -1249,6 +1266,26 @@
     <div id="my-history-content"></div>
   </div>
 
+  <!-- RECEPTY - vlastná obrazovka -->
+  <div class="screen" id="screen-recipes">
+    <div class="admin-header">
+      <button class="back-circle" onclick="goHome()">‹</button>
+      <div class="logo" style="font-size:19px;">Receptúry</div>
+      <button class="recipes-add-btn" onclick="openRecipeForm()">+</button>
+    </div>
+    <div id="recipes-screen-list"></div>
+  </div>
+
+  <!-- DETAIL RECEPTU -->
+  <div class="screen" id="screen-recipe-detail">
+    <div class="admin-header">
+      <button class="back-circle" onclick="openRecipesScreen()">‹</button>
+      <div class="logo" style="font-size:19px;">Recept</div>
+    </div>
+    <div id="recipe-detail-screen-content"></div>
+    <div id="recipe-detail-screen-actions" class="recipe-detail-actions-row"></div>
+  </div>
+
   <!-- ZMENY (SHIFTS) - own only -->
   <div class="screen" id="screen-shifts">
     <div class="admin-header">
@@ -1589,14 +1626,9 @@
 </div>
 
 <!-- RECIPES LIST MODAL -->
-<div class="modal-overlay" id="modal-recipes">
+<div class="modal-overlay" id="modal-recipes" style="display:none;">
   <div class="modal-box modal-box-wide">
-    <h3>📖 Recepty</h3>
     <div class="recipes-list" id="recipes-list"></div>
-    <div class="modal-actions">
-      <button class="modal-btn secondary" onclick="closeModal('modal-recipes')">Zavrieť</button>
-      <button class="modal-btn primary" onclick="openRecipeForm()">+ Pridať recept</button>
-    </div>
   </div>
 </div>
 
@@ -1605,6 +1637,8 @@
   <div class="modal-box modal-box-wide">
     <h3 id="recipe-form-title">Nový recept</h3>
     <input type="text" id="recipe-name" placeholder="Názov nápoja / jedla" maxlength="60">
+    <label class="sales-field-label">Poradie (1, 1.1, 2, 2.3 …)</label>
+    <input type="text" id="recipe-order" placeholder="napr. 2.1" maxlength="12">
     <div class="recipe-photo-row">
       <div class="recipe-photo-preview" id="recipe-photo-preview"></div>
       <label class="recipe-photo-btn">
@@ -3542,29 +3576,52 @@ var editingRecipeId = null;
 var recipePhotoData = null;
 
 function openRecipesBoard() {
+  openRecipesScreen();
+}
+
+function openRecipesScreen() {
   tapFeedback();
+  closeModal('modal-hamburger');
   renderRecipesList();
-  openModal('modal-recipes');
+  showScreen('screen-recipes');
+}
+
+// Porovnanie poradí typu 1, 1.1, 2, 2.3 - po segmentoch
+function compareOrder(a, b) {
+  var pa = String(a == null || a === '' ? '999999' : a).split('.');
+  var pb = String(b == null || b === '' ? '999999' : b).split('.');
+  var len = Math.max(pa.length, pb.length);
+  for (var i = 0; i < len; i++) {
+    var na = parseFloat(pa[i]);
+    var nb = parseFloat(pb[i]);
+    if (isNaN(na)) na = -1;
+    if (isNaN(nb)) nb = -1;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
 }
 
 function renderRecipesList() {
   if (!state.recipes) state.recipes = [];
-  var list = document.getElementById('recipes-list');
+  var list = document.getElementById('recipes-screen-list');
   if (!list) return;
   if (state.recipes.length === 0) {
-    list.innerHTML = '<div class="recipe-empty">Zatiaľ tu nič nie je.<br>Pridaj prvý recept 👇</div>';
+    list.innerHTML = '<div class="recipe-empty">Zatiaľ tu nič nie je.<br>Pridaj prvý recept tlačidlom + hore.</div>';
     return;
   }
   var sorted = state.recipes.slice().sort(function(a, b) {
-    return (b.createdAt || '').localeCompare(a.createdAt || '');
+    var c = compareOrder(a.order, b.order);
+    if (c !== 0) return c;
+    return (a.createdAt || '').localeCompare(b.createdAt || '');
   });
   list.innerHTML = sorted.map(function(r) {
     var thumb = r.photo
       ? '<div class="recipe-card-thumb"><img src="' + r.photo + '" alt=""></div>'
       : '<div class="recipe-card-thumb">🍹</div>';
     var count = (r.ingredients || []).length;
+    var badge = r.order ? '<span class="recipe-order-badge">' + escapeHtml(r.order) + '</span>' : '';
     return '<div class="recipe-card" onclick="openRecipeDetail(\'' + r.id + '\')">' +
-      thumb +
+      badge + thumb +
       '<div class="recipe-card-info">' +
         '<span class="recipe-card-name">' + escapeHtml(r.name) + '</span>' +
         '<span class="recipe-card-meta">' + escapeHtml(r.author || '') + ' · ' + count + ' ' + (count === 1 ? 'surovina' : (count < 5 ? 'suroviny' : 'surovín')) + '</span>' +
@@ -3586,6 +3643,7 @@ function openRecipeForm(recipeId) {
   document.getElementById('recipe-form-error').textContent = '';
   var titleEl = document.getElementById('recipe-form-title');
   var nameEl = document.getElementById('recipe-name');
+  var orderEl = document.getElementById('recipe-order');
   var stepsEl = document.getElementById('recipe-steps');
   var ingList = document.getElementById('recipe-ing-list');
 
@@ -3594,6 +3652,7 @@ function openRecipeForm(recipeId) {
     if (!r) return;
     titleEl.textContent = 'Upraviť recept';
     nameEl.value = r.name || '';
+    orderEl.value = r.order || '';
     stepsEl.value = r.steps || '';
     recipePhotoData = r.photo || null;
     ingList.innerHTML = '';
@@ -3602,14 +3661,18 @@ function openRecipeForm(recipeId) {
   } else {
     titleEl.textContent = 'Nový recept';
     nameEl.value = '';
+    var maxOrder = 0;
+    (state.recipes || []).forEach(function(x) {
+      var n = parseFloat(String(x.order || '0').split('.')[0]);
+      if (!isNaN(n) && n > maxOrder) maxOrder = n;
+    });
+    orderEl.value = String(maxOrder + 1);
     stepsEl.value = '';
     ingList.innerHTML = '';
     addIngredientRow();
     addIngredientRow();
   }
   updateRecipePhotoPreview();
-  closeModal('modal-recipes');
-  closeModal('modal-recipe-detail');
   openModal('modal-recipe-form');
 }
 
@@ -3668,9 +3731,14 @@ function updateRecipePhotoPreview() {
 
 async function saveRecipe() {
   var name = document.getElementById('recipe-name').value.trim();
+  var order = document.getElementById('recipe-order').value.trim();
   var steps = document.getElementById('recipe-steps').value.trim();
   var errEl = document.getElementById('recipe-form-error');
   if (!name) { errEl.textContent = 'Doplň názov receptu.'; return; }
+  if (order && !/^[0-9]+(\.[0-9]+)*$/.test(order)) {
+    errEl.textContent = 'Poradie zapíš ako čísla oddelené bodkou (napr. 2 alebo 2.1).';
+    return;
+  }
 
   var ingredients = [];
   document.querySelectorAll('#recipe-ing-list .recipe-ing-row').forEach(function(row) {
@@ -3682,11 +3750,13 @@ async function saveRecipe() {
 
   if (!state.recipes) state.recipes = [];
   var authorName = currentEmployee ? currentEmployee.name : 'Admin';
+  var wasEditing = !!editingRecipeId;
 
   if (editingRecipeId) {
     var r = state.recipes.find(function(x) { return x.id === editingRecipeId; });
     if (r) {
       r.name = name;
+      r.order = order;
       r.ingredients = ingredients;
       r.steps = steps;
       r.photo = recipePhotoData || null;
@@ -3695,6 +3765,7 @@ async function saveRecipe() {
     state.recipes.push({
       id: 'recipe_' + Date.now(),
       name: name,
+      order: order,
       author: authorName,
       ingredients: ingredients,
       steps: steps,
@@ -3706,8 +3777,8 @@ async function saveRecipe() {
   closeModal('modal-recipe-form');
   await saveData();
   renderRecipesList();
-  openModal('modal-recipes');
-  if (!editingRecipeId) {
+  showScreen('screen-recipes');
+  if (!wasEditing) {
     sendPushToAll('📖 Nový recept', authorName + ' pridal/a recept: ' + name);
   }
   editingRecipeId = null;
@@ -3717,11 +3788,11 @@ function openRecipeDetail(recipeId) {
   tapFeedback();
   var r = (state.recipes || []).find(function(x) { return x.id === recipeId; });
   if (!r) return;
-  var el = document.getElementById('recipe-detail-content');
+  var el = document.getElementById('recipe-detail-screen-content');
   var html = '';
   if (r.photo) { html += '<img class="recipe-detail-photo" src="' + r.photo + '" alt="">'; }
   html += '<div class="recipe-detail-name">' + escapeHtml(r.name) + '</div>';
-  html += '<div class="recipe-detail-author">Pridal/a ' + escapeHtml(r.author || '') + '</div>';
+  html += '<div class="recipe-detail-author">' + (r.order ? '#' + escapeHtml(r.order) + ' · ' : '') + 'Pridal/a ' + escapeHtml(r.author || '') + '</div>';
   if ((r.ingredients || []).length > 0) {
     html += '<div class="recipe-section-label">Suroviny</div>';
     html += '<table class="recipe-detail-table">' + r.ingredients.map(function(i) {
@@ -3734,26 +3805,22 @@ function openRecipeDetail(recipeId) {
   }
   el.innerHTML = html;
 
-  var actions = document.getElementById('recipe-detail-actions');
+  var actions = document.getElementById('recipe-detail-screen-actions');
   var isAdmin = sessionAdminActive() || sessionAdminAuthenticated;
-  actions.innerHTML =
-    '<button class="modal-btn secondary" onclick="closeModal(\'modal-recipe-detail\'); openModal(\'modal-recipes\');">Späť</button>' +
-    (isAdmin
-      ? '<button class="modal-btn secondary" onclick="openRecipeForm(\'' + r.id + '\')">Upraviť</button>' +
-        '<button class="modal-btn primary" onclick="deleteRecipe(\'' + r.id + '\')">Zmazať</button>'
-      : '');
+  actions.innerHTML = isAdmin
+    ? '<button class="modal-btn secondary" onclick="openRecipeForm(\'' + r.id + '\')">Upraviť</button>' +
+      '<button class="modal-btn primary" onclick="deleteRecipe(\'' + r.id + '\')">Zmazať</button>'
+    : '';
 
-  closeModal('modal-recipes');
-  openModal('modal-recipe-detail');
+  showScreen('screen-recipe-detail');
 }
 
 async function deleteRecipe(recipeId) {
   if (!confirm('Naozaj zmazať tento recept?')) return;
   state.recipes = (state.recipes || []).filter(function(x) { return x.id !== recipeId; });
-  closeModal('modal-recipe-detail');
   await saveData();
   renderRecipesList();
-  openModal('modal-recipes');
+  showScreen('screen-recipes');
 }
 
 function openNotesBoard() {
