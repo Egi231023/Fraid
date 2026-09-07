@@ -1963,6 +1963,7 @@ function openPinScreen(emp, purpose) {
   pinBuffer = '';
   // show welcome screen with PIN overlay
   var ws = document.getElementById('screen-welcome');
+  ws.classList.remove('closing');
   ws.classList.add('active');
   var overlay = document.getElementById('welcome-pin-overlay');
   overlay.style.display = 'flex';
@@ -3379,11 +3380,11 @@ function selectProfile(empId) {
   clearStayLoggedIn();
   currentEmployee = null;
   sessionAdminAuthenticated = false;
-  closeProfileMenu();
   updateProfileIcon();
   renderEmployeeGrid();
   var emp = state.employees.find(function(e) { return e.id === empId; });
   if (emp) { openPinScreen(emp, 'clock'); }
+  else { closeProfileMenu(); }
 }
 
 function selectAdminProfile() {
