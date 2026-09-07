@@ -1685,7 +1685,7 @@ async function sendPoke(targetEmpId, actionKey) {
   closeModal('modal-poke');
   await saveData();
   updateNotifBadges();
-  sendPushToAll(action.emoji + ' ' + authorName, authorName + ' ti ' + action.label + '.');
+  sendPushToAll(action.emoji + ' ' + authorName, authorName + ' ti ' + action.label + '.', targetEmpId);
 }
 
 function switchHomeTab(tab) {
@@ -2189,6 +2189,9 @@ function checkPin() {
         var transLogo = document.getElementById('login-transition-logo');
         transLogo.src = FRAID_LOGO_ICON;
         transEl.classList.add('active');
+        if (typeof subscribeToPush === 'function' && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          subscribeToPush(null, true);
+        }
         setTimeout(function() {
           goHome();
           setTimeout(function() {
@@ -3586,10 +3589,15 @@ async function enablePushNotifications() {
   if (ok) { showAppAlert('Notifikácie sú zapnuté. Dostaneš upozornenie, keď niekto napíše na nástenku.', '✅ Hotovo'); }
 }
 
-async function sendPushToAll(title, body) {
+async function sendPushToAll(title, body, targetEmployeeId) {
   try {
     await sb.functions.invoke('send-push', {
-      body: { title: title, body: body, excludeEmployeeId: currentEmployee ? currentEmployee.id : null }
+      body: {
+        title: title,
+        body: body,
+        excludeEmployeeId: currentEmployee ? currentEmployee.id : null,
+        targetEmployeeId: targetEmployeeId || null
+      }
     });
   } catch (e) {
     console.warn('Push sa nepodarilo odoslať', e);
