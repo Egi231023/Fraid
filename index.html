@@ -1685,6 +1685,7 @@ async function sendPoke(targetEmpId, actionKey) {
   closeModal('modal-poke');
   await saveData();
   updateNotifBadges();
+  sendPushToAll(action.emoji + ' ' + authorName, authorName + ' ti ' + action.label + '.');
 }
 
 function switchHomeTab(tab) {
