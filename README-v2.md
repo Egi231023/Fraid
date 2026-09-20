@@ -1,56 +1,48 @@
-# Fraid v2 — implementation checkpoint, 2026-09-20
+# Fraid v2 — live release, 2026-09-20
 
-## Deployment status (read first)
+## Production state
 
-- **Production cutover NOT performed.** GitHub integration write access was restored on 2026-09-20. This release publishes the additive `v2/` preview for browser and account setup checks; it does not redirect the existing app or activate operational writes.
-- Original root `index.html` and `sw.js` remain unchanged at GitHub commit `de31dc45c628986cb9dfc3cbe2d03f16c2b9f7b5`.
-- Supabase project `arbvuovtqntagfpfqfgp`: additive v2 schema, import, RPCs, scheduled stale-entry check, and authenticated push endpoint are installed. The `fraid_private.release.live` switch remains **false**; operational writes are blocked.
-- Both Fraid and Biogreens use `public.fraid_data`. The old open policies are still present to avoid an uncoordinated outage. **Existing production security vulnerabilities are not yet resolved.**
-- Owner-confirmed, email-verified Auth account is now linked to the existing Eugen profile as administrator, with an audit record. Remaining staff may register and be mapped after cutover, as explicitly approved by the owner. Do not use old public PINs to bootstrap access.
+The original https://egi231023.github.io/Fraid/ entry now redirects to authenticated `v2/`. The production code release is `472cf586e01670472821c0f3cf4f3cc9f2ff0db2`. Operational writes are enabled in Supabase project `arbvuovtqntagfpfqfgp`.
 
-## Implemented
+The owner-confirmed, verified account is linked to the existing Eugen profile as administrator, with an audit record. The owner explicitly approved staff registering later. Preserve their existing profiles and history; after email verification, the administrator links an account in **Tím → Profil**. An unlinked account has no access to operational records. Never approve merely by matching a name or being the first registrant.
 
-Self-hosted, pinned Supabase JS 2.116.0; email/password auth UI with account approval; independent JSON record rows with typed collections; server-side role and ownership checks; separate wages; serialized atomic writes and optimistic versions; idempotency and retry recovery; audit trail; server clock with Europe/Bratislava timezone; requested/supervised attendance corrections; availability-based draft planning; adjustable capacity/hours; daily sales with explicit date, separate tips and cash count; recipes with unit-aware costs and original images; stock movements and inventory; minimum-stock purchase export; approved vs proposed checklist tasks; notes, team management and navigation; CSV formula neutralization; HTML escaping and CSP.
+The legacy Fraid JSON row is no longer accessible to anonymous or ordinary authenticated users. Biogreens retains its existing legacy access and its data was verified unchanged. Old committed PINs no longer grant access to Fraid. Existing old browser tabs must be refreshed to load the new app.
 
-Existing avatars and logo were extracted from the original source. Import preserves all original record fields. PINs are excluded from the v2 directory and hourly rates are isolated in owner/admin-readable wage records.
+## Functionality
 
-`v2/?demo=1` uses synthetic fixtures only and refuses writes. It is the read-only preview route after GitHub Pages publishes this release. Staff email/password registration needs real configuration and delivery verification; never mark it tested merely from SQL checks.
+Email/password authentication, database-enforced roles and ownership, per-record persistence, optimistic versions, idempotency, audit history, attendance corrections, availability-based draft scheduling, sales dates and separate tips, recipe costing from known quantities/prices, inventory movements, checklist templates and completion, notes, staff profiles and CSV exports are implemented.
 
-## Validation performed
+Opening hours and capacity require administrator confirmation; draft tasks are not asserted to be established café rules. Missing recipe costs remain unknown. Automated stock deductions from sales are not inferred.
 
-- `npm test`: 8 passing tests, covering Slovak dates, strict numeric parsing, unit conversions, planning availability/collisions, hours, safe CSV and simulated DOM navigation/edit dialogs. **DOM simulation is not a real mobile-browser visual test.**
-- `npm run check`: JavaScript syntax checks pass.
-- `tests/database.sql`: exercised actual installed PostgreSQL functions in a transaction and rolled back all fixture users/data. Covered anon and unapproved denials, wage/attendance/audit isolation, role-escalation denial, repeated request deduplication, stale-version rejection, stock arithmetic/negative-stock rejection, parallel staff shifts, duplicate person shift rejection, past sale date, duplicate daily sale rejection, and atomic failed batch rollback.
-- `db/verify-migration.sql`: restored backups into temporary tables and compared exact rows; compared imported legacy array records with originals. Counts: 4 people, 26 entries, 9 shifts, 7 recipes, 1 sale, 50 notes, 1 idea, 4 wage records and settings.
-- Supabase security advisor returned no lints; this does not validate the intentionally unchanged legacy policies.
-- Confirmed zero test fixture people/records remained, zero Auth users, original source data unchanged and release gate off.
-- Unauthenticated POST to the new push endpoint returned HTTP 401. No message-send action was invoked.
-- Real-device visual testing, authenticated end-to-end test, concurrent separate-session load test, real email confirmation, and actual push delivery are outstanding. No notifications were sent to staff.
+`v2/?demo=1` is a synthetic, read-only demonstration and never writes real operational data.
 
-## Backups and recovery
+## Verification actually performed
 
-Protected database schema `fraid_backup` contains `pre_v2_data_20260920`, `pre_v2_push_20260920` and `pre_v2_policies_20260920`; public/anon/authenticated access is revoked. The original source remains in Git history. `db/verify-migration.sql` verifies a restore into temporary tables without overwriting production.
+- Eight Node tests and JavaScript syntax checks passed for the release.
+- Transactional database tests cover anonymous/unapproved denial, ownership, role escalation, idempotency, optimistic-version conflicts, stock quantities, shift collisions, sale dates/duplicates and atomic batches. Fixtures were rolled back.
+- Deferred-registration SQL test proves that unverified/unlinked accounts are denied and later administrator linking preserves existing attendance history without granting administrator privileges.
+- The complete cutover was rehearsed and rolled back before execution. Fresh backup restoration and exact import preservation were checked inside the real cutover transaction.
+- Real owner login through the secure browser flow succeeded. All main sections loaded with transferred data. The original URL redirects to v2; the current script loads without the staging notice. At the tested desktop viewport there was no horizontal document overflow.
+- `db/verify-live.sql` passed after activation: legacy anonymous Fraid read/write denied, old subscription access scoped to Biogreens, Biogreens records unchanged, release active.
+- No synthetic test records or test profiles remained. Original imported data: 4 profiles, 26 attendance entries, 9 shifts, 7 recipes, 1 sale, 50 notes, 1 idea and 4 wage records. New real user activity after activation must be preserved, not mistaken for test fixtures.
+- A 15-minute scheduled job flags stale attendance for review; it does not invent departure times.
 
-`db/rollback.sql` stops v2 writes while preserving new data and security. Never automatically revert to open legacy policies. A post-cutover restore must reconcile newer rows, not blindly overwrite them.
+Not yet verified: physical mobile-device layout, separate-session concurrency/load testing, offline browser recovery, delivery of registration mail to non-owner staff, and actual push delivery. No notification-send test was performed.
 
-## Resume sequence
+The security advisor reports leaked-password protection disabled. Enabling it remains a configuration follow-up; do not purchase a plan or change billing automatically. Reference: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
-1. GitHub write access has been restored. Publish and verify the additive preview release; do not activate production until the following gates pass.
-2. Publish the additive `v2/` preview while leaving the root app intact. Verify desktop and mobile UI, network failures, user login and registration. Configure Supabase Site URL/allowed redirects and working email delivery for that preview; shared project changes must not disrupt Biogreens.
-3. User identifies the administrator's email; they create/verify their account securely. Link the verified Auth user ID to the confirmed existing employee profile and set role admin via an audited privileged operation. Never grant admin to the first registrant automatically. Owner explicitly approved staff registering after cutover. Preserve active unlinked profiles and link verified accounts later in Team; never grant access merely by matching a name.
-4. Recheck source data and import freshness. Review `db/cutover.sql`: it locks legacy data, snapshots again, imports recent changes, restricts only the Fraid legacy row, restricts old push rows and enables v2. Do not execute before real login/UI gates pass. The script is a **reviewable draft**, not an already exercised production cutover.
-5. Before cutover, review the existing `send-push` Edge Function: it uses service-role access to all old subscriptions. It must be filtered to Biogreens employee IDs when Fraid switches to v2. This old endpoint has NOT been changed. Simply tightening table RLS will not constrain service-role reads.
-6. In the same release, replace root with a redirect to `./v2/`, stop distributing old login code, run cutover after final guards, and verify old anonymous Fraid read/write denial, new employee/admin access, and unchanged Biogreens behavior. Old committed PINs must be regarded as invalid, not merely hidden.
-7. Confirm scheduled stale-entry checks run after activation. The job runs every 15 minutes but is a no-op before release. It marks prior-day open entries; it never guesses paid time.
+## Notifications
 
-## Notes
+`fraid-v2-push` authenticates through Auth getUser and checks approved membership/admin permissions. It uses private VAPID environment secrets, a separate RLS-protected subscription table and an allowed push-provider list. Its gateway JWT check is disabled because authentication is explicitly performed in the handler.
 
-- `db/install.sql`, `batch.sql`, `push.sql`, `stale-check.sql` are applied setup scripts, not generated Supabase CLI migration history. Do not blindly rerun `install.sql` or `push.sql` on the current project (policy/table names already exist).
-- Edge `fraid-v2-push` has gateway JWT verification disabled because its handler explicitly calls Supabase Auth `getUser()` and checks approved membership/role before every action. It uses environment-held VAPID secrets, pinned dependency, provider host allowlist and a separate per-user RLS table. It never trusts an anon key as user authentication.
-- Push registration is available; sending a stored note is admin-only at the endpoint. No automatic broad staff message is triggered during migration or tests.
-- Unknown legacy recipe quantities remain intact and are not guessed. Editing requests structured quantity/unit values. Cost stays unavailable until stock linkage and valid prices exist.
-- Shift hours are copied from the old generator as an unconfirmed configuration, not asserted as current business hours. Capacity starts at the former single-person behavior until owner confirmation.
+Legacy `send-push` version 6 retains its previous gateway JWT setting but now restricts service-role delivery to Biogreens employee IDs. It cannot send to Fraid's old subscriptions. Its previous source is preserved privately in `fraid_backup.edge_function_versions`.
 
-## Entry-point update
+## Backup and recovery
 
-The original welcome and home screens link directly to `v2/`. The authenticated v2 view explicitly warns that records are a migrated snapshot and operational writes remain disabled. Remove this preparation notice only as part of the verified production cutover.
+Protected `fraid_backup` schema contains the pre-v2 snapshots and the fresh `cutover_data`, `cutover_push`, `cutover_policies` snapshots. Public, anonymous and authenticated roles have no access. Exact restoration was rehearsed into temporary tables.
+
+`db/cutover.sql` has been EXECUTED. Do not rerun it. Setup SQL files are applied source, not CLI migration-history entries.
+
+For an incident, `db/rollback.sql` disables writes while preserving new records and the tightened permissions. Keep the v2 interface available and deploy a corrected v2 version. Never restore the old public access policies or blindly overwrite post-cutover data with a snapshot. Reconcile newer records and audit history before any data restoration.
+
+`db/verify-live.sql` verifies the current access boundaries without committing an operational write. `db/verify-migration.sql` is the historical pre-cutover comparison and is not a post-live record-count test.

@@ -1,4 +1,5 @@
--- NOT EXECUTED. Requires verified owner identity; other staff may register later,
+-- EXECUTED successfully on 2026-09-20 after rollback rehearsal and real owner login.
+-- Historical release script: DO NOT RERUN. Other staff may register later,
 -- successful real-user login, UI testing and authorized GitHub deployment first.
 -- Perform while deploying root redirect to /Fraid/v2/. Never enable legacy public
 -- access as a rollback; keep v2 read-only if a deployment fails.
