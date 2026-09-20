@@ -1,12 +1,12 @@
 export const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const today = (date=new Date()) => new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Bratislava',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
 export const money = n => new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'}).format(Number(n)||0);
-export const minutes = s => /^\d\d:\d\d$/.test(s||'') ? Number(s.slice(0,2))*60+Number(s.slice(3)) : NaN;
+export const minutes = s => /^([01]\d|2[0-3]):[0-5]\d$/.test(s||'') ? Number(s.slice(0,2))*60+Number(s.slice(3)) : NaN;
 export const hours = d => d.status==='void'||!d.timeOut ? 0 : Math.max(0,minutes(d.timeOut)-minutes(d.timeIn))/60;
 export const number = v => { const s=String(v).trim().replace(',','.'); if(!/^-?\d+(\.\d+)?$/.test(s)||!Number.isFinite(Number(s)))throw Error('Zadaj platné číslo.'); return Number(s); };
 export function addDays(day,n){const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
 export function weekStart(day){const d=new Date(day+'T12:00:00Z');return addDays(day,-((d.getUTCDay()+6)%7));}
-export function recipeCost(recipe,stock){let sum=0;for(const i of recipe.ingredients||[]){const item=stock.find(s=>s.id===i.stockId);if(!item||item.unitCost==null||item.unitCost==='')return null;const scales={g:['mass',1],kg:['mass',1000],ml:['volume',1],l:['volume',1000],ks:['count',1]};const a=scales[i.unit],b=scales[item.unit];if(!a||!b||a[0]!==b[0]||!(Number(i.quantity)>0))return null;sum+=Number(i.quantity)*a[1]/b[1]*Number(item.unitCost);}return recipe.ingredients?.length?sum:null;}
+export function recipeCost(recipe,stock){let sum=0;for(const i of recipe.ingredients||[]){const item=stock.find(s=>s.id===i.stockId);if(!item||item.unitCost==null||String(item.unitCost).trim()===''||!Number.isFinite(Number(item.unitCost))||Number(item.unitCost)<0)return null;const scales={g:['mass',1],kg:['mass',1000],ml:['volume',1],l:['volume',1000],ks:['count',1]};const a=scales[i.unit],b=scales[item.unit];if(!a||!b||a[0]!==b[0]||!(Number(i.quantity)>0)||!Number.isFinite(Number(i.quantity)))return null;sum+=Number(i.quantity)*a[1]/b[1]*Number(item.unitCost);}return recipe.ingredients?.length?sum:null;}
 export function proposeWeek(start,people,availability,shifts,settings){
  if(!settings.scheduleConfirmed)throw Error('Najprv potvrď otváracie časy a kapacitu v nastaveniach.');
  const draft=[],unfilled=[],load=Object.fromEntries(people.map(p=>[p.id,0]));

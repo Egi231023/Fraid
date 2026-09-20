@@ -1,5 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {today,number,recipeCost,proposeWeek,hours,csv,weekStart} from '../v2/core.js';
+import {today,number,recipeCost,proposeWeek,hours,csv,weekStart,minutes} from '../v2/core.js';
+test('invalid times are rejected instead of becoming plausible hours',()=>{for(const t of ['24:00','12:60','99:99','8:00'])assert.ok(Number.isNaN(minutes(t)));assert.equal(minutes('23:59'),1439);});
+test('recipe costs reject invalid prices and non-finite quantities',()=>{const recipe={ingredients:[{stockId:'c',quantity:1,unit:'kg'}]};for(const unitCost of ['bad','Infinity',-2,' '])assert.equal(recipeCost(recipe,[{id:'c',unit:'kg',unitCost}]),null);assert.equal(recipeCost({ingredients:[{stockId:'c',quantity:Infinity,unit:'kg'}]},[{id:'c',unit:'kg',unitCost:2}]),null);});
 test('Slovak date respects midnight and daylight saving',()=>{assert.equal(today(new Date('2026-09-19T22:30:00Z')),'2026-09-20');assert.equal(today(new Date('2026-01-01T23:30:00Z')),'2026-01-02');assert.equal(weekStart('2026-09-20'),'2026-09-14');});
 test('strict amounts reject partially numeric input',()=>{assert.equal(number('12,30'),12.3);for(const v of ['12abc','Infinity','','1.2.3'])assert.throws(()=>number(v));});
 test('recipe costing converts compatible units and refuses guesses',()=>{const r={ingredients:[{stockId:'c',quantity:18,unit:'g'}]};assert.equal(recipeCost(r,[{id:'c',unit:'kg',unitCost:20}]),.36);assert.equal(recipeCost(r,[{id:'c',unit:'kg',unitCost:null}]),null);assert.equal(recipeCost(r,[{id:'c',unit:'l',unitCost:20}]),null);});
