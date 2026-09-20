@@ -45,3 +45,15 @@ Do not interpret this checkpoint as full production acceptance.
 ## Rollback
 
 This patch is frontend-only, uses the existing RPC contracts and preserves the database and Edge Function versions. Revert only this change set on the then-current main branch after checking concurrent changes; do not reset other user work or restore legacy permissive policies. Regression tests use synthetic in-memory data and do not send mail.
+
+## Continuation — verified recovery and reviewed attendance
+
+- Owner confirmed recovery works after a real email was received and localhost redirect was corrected. A final new-password login has not been independently observed.
+- Auth SMTP is separate from report-mail delivery. Scheduler health still reports mailConfigured=false.
+- Supabase redirect allowlist now contains exact Fraid v2 base and recovery URLs. Global Site URL remains unchanged because the project is shared; registration now explicitly requests the Fraid base URL.
+- Reviewed attendance is shared by UI, CSV and payroll calculation: pending corrections, flagged entries, invalid dates/times and overlapping entries are excluded with reasons. An overlap remains unresolved even when one entry already awaits correction.
+- Missing wages without attendance, void wages and unknown profiles now flag payroll as incomplete. Current-rate caveat remains.
+- Existing-account login no longer applies the new-account minimum password length; registration and recovery still require 12 characters.
+- 47 isolated automated tests and syntax checks passed. No synthetic production records created. No database schema changes.
+- Remaining critical gates: full backup/isolated restore; real employee/admin API sessions and concurrent writes; historical rates and overnight/break rules; lot inventory and atomic closing; durable SMTP uncertain-attempt handling and separately configured report secret; physical iPhone push; approved AI provider.
+- Rollback for this continuation: revert its frontend/report-calculation commit and restore the previous reporting module in the existing scheduled function. Do not remove the working exact auth redirects or revert permission fixes.
