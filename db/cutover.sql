@@ -11,6 +11,9 @@ do $$ begin
 end $$;
 -- Fresh, protected snapshot at the actual cutover boundary.
 create table fraid_backup.cutover_data as table public.fraid_data;
+create table fraid_backup.cutover_push as table public.fraid_push_subs;
+create table fraid_backup.cutover_policies as select * from pg_policies where schemaname='public' and tablename in ('fraid_data','fraid_push_subs');
+revoke all on fraid_backup.cutover_push,fraid_backup.cutover_policies from public,anon,authenticated;
 revoke all on fraid_backup.cutover_data from public,anon,authenticated;
 -- Final import: latest legacy data, preserving verified account assignments.
 insert into public.fraid_v2_people(id,name,avatar,legacy)
@@ -24,8 +27,18 @@ from public.fraid_data f,lateral jsonb_each(f.value) section,lateral jsonb_array
 where f.id='fraid-main' and section.key in ('entries','shifts','recipes','sales','notes','ideas')
 on conflict(kind,id) do update set data=excluded.data,owner_id=excluded.owner_id,updated_at=now();
 update public.fraid_v2_records r set data=r.data||'{"status":"void","legacyRemoved":true}'::jsonb
-where r.kind in ('entries','shifts','recipes','sales','notes','ideas') and not exists(select 1 from public.fraid_data f,lateral jsonb_array_elements(f.value->r.kind) e where f.id='fraid-main' and e->>'id'=r.id);
-update public.fraid_v2_records r set data=jsonb_build_object('hourly',e->'hodinovka') from public.fraid_data f,lateral jsonb_array_elements(f.value->'employees') e where f.id='fraid-main' and r.kind='wages' and r.id=e->>'id';
+where r.kind in ('entries','shifts','recipes','sales','notes','ideas') and not exists(select 1 from public.fraid_data f,lateral jsonb_array_elements(f.value->r.kind) with ordinality a(e,n) where f.id='fraid-main' and coalesce(e->>'id','legacy_'||r.kind||'_'||n)=r.id);
+insert into public.fraid_v2_records(kind,id,owner_id,data)
+select 'wages',e->>'id',e->>'id',jsonb_build_object('hourly',e->'hodinovka') from public.fraid_data f,lateral jsonb_array_elements(f.value->'employees') e where f.id='fraid-main'
+on conflict(kind,id) do update set data=excluded.data,owner_id=excluded.owner_id,updated_at=now();
+update public.fraid_v2_records r set data=r.data||coalesce(f.value->'settings','{}') from public.fraid_data f where f.id='fraid-main' and r.kind='settings' and r.id='main';
+-- Verify restore and exact source preservation before changing access.
+create temporary table restore_cutover as table fraid_backup.cutover_data;
+do $$ begin
+ if exists((select * from restore_cutover except select * from public.fraid_data) union all (select * from public.fraid_data except select * from restore_cutover)) then raise exception 'Fresh backup restore mismatch'; end if;
+ if exists(select 1 from public.fraid_data f,lateral jsonb_each(f.value) s,lateral jsonb_array_elements(case when jsonb_typeof(s.value)='array' then s.value else '[]' end) with ordinality a(e,n) where f.id='fraid-main' and s.key in ('entries','shifts','recipes','sales','notes','ideas') and not exists(select 1 from public.fraid_v2_records r where r.kind=s.key and r.id=coalesce(e->>'id','legacy_'||s.key||'_'||n) and r.data @> e)) then raise exception 'Imported records differ from current source'; end if;
+ if exists(select 1 from public.fraid_v2_people where legacy ? 'pin' or legacy ? 'hodinovka') then raise exception 'Sensitive legacy directory data'; end if;
+end $$;
 -- Owner approved deferred staff registration. Preserve unlinked profiles and
 -- history; RLS denies them access until an admin links a verified Auth account.
 -- Restrict only Fraid's legacy row. Preserve the known Biogreens application.
