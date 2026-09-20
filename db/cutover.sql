@@ -1,4 +1,4 @@
--- NOT EXECUTED. Requires verified owner identity, all active profiles linked,
+-- NOT EXECUTED. Requires verified owner identity; other staff may register later,
 -- successful real-user login, UI testing and authorized GitHub deployment first.
 -- Perform while deploying root redirect to /Fraid/v2/. Never enable legacy public
 -- access as a rollback; keep v2 read-only if a deployment fails.
@@ -7,7 +7,6 @@ lock table public.fraid_data in share row exclusive mode;
 do $$ begin
  if (select live from fraid_private.release where id) then raise exception 'Already activated'; end if;
  if not exists(select 1 from public.fraid_v2_people p join auth.users u on u.id=p.user_id where p.role='admin' and p.active and u.email_confirmed_at is not null) then raise exception 'Verified admin required'; end if;
- if exists(select 1 from public.fraid_v2_people p left join auth.users u on u.id=p.user_id where p.active and (u.id is null or u.email_confirmed_at is null)) then raise exception 'Map all active staff accounts or explicitly archive unused profiles first'; end if;
  if exists(select 1 from public.fraid_v2_audit where action<>'person') then raise exception 'Unexpected v2 operational writes; reconcile before cutover'; end if;
 end $$;
 -- Fresh, protected snapshot at the actual cutover boundary.
@@ -27,9 +26,8 @@ on conflict(kind,id) do update set data=excluded.data,owner_id=excluded.owner_id
 update public.fraid_v2_records r set data=r.data||'{"status":"void","legacyRemoved":true}'::jsonb
 where r.kind in ('entries','shifts','recipes','sales','notes','ideas') and not exists(select 1 from public.fraid_data f,lateral jsonb_array_elements(f.value->r.kind) e where f.id='fraid-main' and e->>'id'=r.id);
 update public.fraid_v2_records r set data=jsonb_build_object('hourly',e->'hodinovka') from public.fraid_data f,lateral jsonb_array_elements(f.value->'employees') e where f.id='fraid-main' and r.kind='wages' and r.id=e->>'id';
-do $$ begin
- if exists(select 1 from public.fraid_v2_people where active and user_id is null) then raise exception 'New legacy employee requires account mapping'; end if;
-end $$;
+-- Owner approved deferred staff registration. Preserve unlinked profiles and
+-- history; RLS denies them access until an admin links a verified Auth account.
 -- Restrict only Fraid's legacy row. Preserve the known Biogreens application.
 drop policy "Allow all access" on public.fraid_data;
 create policy biogreens_legacy_access on public.fraid_data for all to anon,authenticated using(id='biogreens-main') with check(id='biogreens-main');

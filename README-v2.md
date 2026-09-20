@@ -6,7 +6,7 @@
 - Original root `index.html` and `sw.js` remain unchanged at GitHub commit `de31dc45c628986cb9dfc3cbe2d03f16c2b9f7b5`.
 - Supabase project `arbvuovtqntagfpfqfgp`: additive v2 schema, import, RPCs, scheduled stale-entry check, and authenticated push endpoint are installed. The `fraid_private.release.live` switch remains **false**; operational writes are blocked.
 - Both Fraid and Biogreens use `public.fraid_data`. The old open policies are still present to avoid an uncoordinated outage. **Existing production security vulnerabilities are not yet resolved.**
-- Owner-confirmed, email-verified Auth account is now linked to the existing Eugen profile as administrator, with an audit record. The remaining active staff profiles still require account mapping. Do not use old public PINs to bootstrap access.
+- Owner-confirmed, email-verified Auth account is now linked to the existing Eugen profile as administrator, with an audit record. Remaining staff may register and be mapped after cutover, as explicitly approved by the owner. Do not use old public PINs to bootstrap access.
 
 ## Implemented
 
@@ -37,7 +37,7 @@ Protected database schema `fraid_backup` contains `pre_v2_data_20260920`, `pre_v
 
 1. GitHub write access has been restored. Publish and verify the additive preview release; do not activate production until the following gates pass.
 2. Publish the additive `v2/` preview while leaving the root app intact. Verify desktop and mobile UI, network failures, user login and registration. Configure Supabase Site URL/allowed redirects and working email delivery for that preview; shared project changes must not disrupt Biogreens.
-3. User identifies the administrator's email; they create/verify their account securely. Link the verified Auth user ID to the confirmed existing employee profile and set role admin via an audited privileged operation. Never grant admin to the first registrant automatically. Link or explicitly archive each active staff profile before cutover.
+3. User identifies the administrator's email; they create/verify their account securely. Link the verified Auth user ID to the confirmed existing employee profile and set role admin via an audited privileged operation. Never grant admin to the first registrant automatically. Owner explicitly approved staff registering after cutover. Preserve active unlinked profiles and link verified accounts later in Team; never grant access merely by matching a name.
 4. Recheck source data and import freshness. Review `db/cutover.sql`: it locks legacy data, snapshots again, imports recent changes, restricts only the Fraid legacy row, restricts old push rows and enables v2. Do not execute before real login/UI gates pass. The script is a **reviewable draft**, not an already exercised production cutover.
 5. Before cutover, review the existing `send-push` Edge Function: it uses service-role access to all old subscriptions. It must be filtered to Biogreens employee IDs when Fraid switches to v2. This old endpoint has NOT been changed. Simply tightening table RLS will not constrain service-role reads.
 6. In the same release, replace root with a redirect to `./v2/`, stop distributing old login code, run cutover after final guards, and verify old anonymous Fraid read/write denial, new employee/admin access, and unchanged Biogreens behavior. Old committed PINs must be regarded as invalid, not merely hidden.
