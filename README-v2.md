@@ -6,7 +6,7 @@
 - Original root `index.html` and `sw.js` remain unchanged at GitHub commit `de31dc45c628986cb9dfc3cbe2d03f16c2b9f7b5`.
 - Supabase project `arbvuovtqntagfpfqfgp`: additive v2 schema, import, RPCs, scheduled stale-entry check, and authenticated push endpoint are installed. The `fraid_private.release.live` switch remains **false**; operational writes are blocked.
 - Both Fraid and Biogreens use `public.fraid_data`. The old open policies are still present to avoid an uncoordinated outage. **Existing production security vulnerabilities are not yet resolved.**
-- No Supabase Auth users existed at completion. A verified administrator identity and staff account mapping are required. Do not infer the administrator's email from a project label or use old public PINs to bootstrap access.
+- Owner-confirmed, email-verified Auth account is now linked to the existing Eugen profile as administrator, with an audit record. The remaining active staff profiles still require account mapping. Do not use old public PINs to bootstrap access.
 
 ## Implemented
 
@@ -50,3 +50,7 @@ Protected database schema `fraid_backup` contains `pre_v2_data_20260920`, `pre_v
 - Push registration is available; sending a stored note is admin-only at the endpoint. No automatic broad staff message is triggered during migration or tests.
 - Unknown legacy recipe quantities remain intact and are not guessed. Editing requests structured quantity/unit values. Cost stays unavailable until stock linkage and valid prices exist.
 - Shift hours are copied from the old generator as an unconfirmed configuration, not asserted as current business hours. Capacity starts at the former single-person behavior until owner confirmation.
+
+## Entry-point update
+
+The original welcome and home screens link directly to `v2/`. The authenticated v2 view explicitly warns that records are a migrated snapshot and operational writes remain disabled. Remove this preparation notice only as part of the verified production cutover.

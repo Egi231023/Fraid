@@ -1100,6 +1100,9 @@
   .gen-week-nav .gen-week-label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
   .gen-btn { width: 100%; padding: 13px; background: var(--espresso); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
   .gen-btn:disabled { opacity: 0.5; }
+
+  .fraid-upgrade-link { display:block; margin:12px auto; padding:14px 18px; max-width:360px; border-radius:14px; background:#e9c6a5; color:#302219; font:700 15px/1.4 sans-serif; text-align:center; text-decoration:none; box-sizing:border-box; }
+  .fraid-upgrade-link:focus-visible { outline:3px solid #fff; outline-offset:3px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -1132,6 +1135,7 @@
     <div class="welcome-tagline" id="welcome-quote">Dochádzka a zmeny</div>
   </div>
   <div class="welcome-bottom" id="welcome-bottom">
+    <a class="fraid-upgrade-link" href="./v2/">Otvoriť novú verziu →</a>
     <div class="welcome-subtitle" id="welcome-subtitle">Kto si?</div>
     <div class="welcome-profile-grid" id="welcome-profile-grid"></div>
     <div class="welcome-locked" id="welcome-locked" style="display:none;"></div>
@@ -1140,6 +1144,7 @@
 </div>
 
   <div class="screen" id="screen-home">
+    <a class="fraid-upgrade-link" href="./v2/">Otvoriť novú verziu →</a>
     <svg width="90" height="90" viewBox="0 0 90 90" fill="none" style="position:absolute; top:8px; right:10px; opacity:0.16; pointer-events:none; z-index:0;">
       <path d="M45 10c8 10 14 18 14 28a14 14 0 0 1-28 0c0-6 3-10 6-14-1 4 1 7 4 7 4 0 5-3 4-7 1-3 0-9 0-14z" fill="var(--terracotta)"/>
     </svg>
