@@ -5,6 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {sendReservedGmail} from '../supabase/functions/fraid-scheduled-reports/smtp-delivery.js';
 const migration=await readFile(new URL('../supabase/migrations/20260920153523_fraid_smtp_attempt_guard.sql',import.meta.url),'utf8');
 const baseline=migration.match(/\$expected\$([\s\S]*?)\$expected\$/)[1];
+const dataMigration=await readFile(new URL('../supabase/migrations/20260920154749_fraid_report_data_access.sql',import.meta.url),'utf8');
 const original=await readFile(new URL('../db/reports-and-expiry.sql',import.meta.url),'utf8');
 const payload={to:['synthetic@example.com'],subject:'Synthetic',text:'Test'};
 test('SQL reservation fences stale workers, crashes and retries; preserves ordinary push handling',async()=>{
@@ -13,8 +14,16 @@ test('SQL reservation fences stale workers, crashes and retries; preserves ordin
   await db.exec('create schema fraid_private;');
   for(const ddl of original.match(/create table fraid_private\.(deliveries|job_config|job_health)\([^;]+;/g))await db.exec(ddl);
   await db.exec(baseline);
+  await db.exec("create role anon; create role service_role; revoke all on function fraid_private.job_control(jsonb) from public; grant usage on schema fraid_private to service_role; grant execute on function fraid_private.job_control(jsonb) to service_role; create table public.fraid_v2_people(id text); create table public.fraid_v2_records(id text,kind text,data jsonb); insert into public.fraid_v2_records values ('1','entries','{}'),('2','notes','{}'),('3','wages','{}');");
   await db.exec(migration);
+  await db.exec(dataMigration);
   const control=async p=>(await db.query('select fraid_private.job_control($1::jsonb) as result',[JSON.stringify(p)])).rows[0].result;
+  await db.exec('set role anon');
+  await assert.rejects(()=>control({action:'report_data'}),/permission denied/);
+  await db.exec('reset role; set role service_role');
+  const reportData=await control({action:'report_data'});
+  assert.deepEqual(reportData.records.map(r=>r.kind),['entries','wages']);
+  await db.exec('reset role');
   const state=async key=>(await db.query('select status,attempts from fraid_private.deliveries where key=$1',[key])).rows[0];
   const expire=key=>db.query("update fraid_private.deliveries set lease_until=now()-interval '1 day' where key=$1",[key]);
   const claim=key=>control({action:'claim',key,report:payload});

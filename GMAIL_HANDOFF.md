@@ -21,7 +21,7 @@ Full current backup and isolated restore remain incomplete. Do not perform the d
 
 References: https://support.google.com/accounts/answer/185833 ; https://developers.google.com/workspace/gmail/imap/imap-smtp ; https://supabase.com/docs/guides/functions/limits ; https://nodemailer.com/smtp
 
-## Prepared SMTP guard — NOT deployed
+## SMTP guard preparation (historical; activation recorded below)
 
 Migration `20260920153523_fraid_smtp_attempt_guard.sql` replaces only `fraid_private.job_control(jsonb)`, preserving its owner and ACL. It checks the exact current function definition before applying. Claim responses include an attempt generation. SMTP reservation atomically moves that generation to terminal `uncertain` with an infinite lease and a receipt token before network activity; normal claims and generic finish cannot reopen it. A matching receipt can mark confirmed provider acceptance `sent`. Uncertain outcomes require manual review, never automatic resend. Push retains its original claim/finish behavior.
 
@@ -34,3 +34,13 @@ The owner's full-backup requirement remains unsatisfied. Before production chang
 After that gate: recheck current function and edge baseline, capture a fresh scoped snapshot if changed, apply the exact tested migration, verify execute permissions and ready action, deploy the staged files, set mode=test, and invoke one authenticated test with a sufficiently long HTTP timeout. Do not return the scheduler token. Use the existing private dispatch pattern to pass the token server-side. Confirm provider acceptance separately from inbox arrival before setting mode=enabled. On ambiguous outcome, stop; do not clear the reservation.
 
 Rollback: first remove/disable Gmail mode, then restore version 6 Edge code. Keep the guard and all delivery records by default. Restoring an old database snapshot after sending can erase the only evidence preventing duplicates; never do that. Function-only rollback from the captured definition was tested with the existing uncertain rows and infinite leases preserved.
+
+## Activation and one accepted test — 2026-09-20
+
+Owner explicitly accepted the narrower verified scheduler backup for this change and authorized one test to the existing confirmed administrator recipient. Applied `fraid_smtp_attempt_guard`. Production checks: anonymous and authenticated callers cannot execute the public control wrapper; service_role can; guard version 1 ready.
+
+Initial requests 18 and 19 failed at `report_data` before any delivery row or SMTP attempt existed. Root cause: service_role intentionally lacks direct SELECT on the operational tables. The additional `fraid_report_data_access` migration changes only the same backed-up control function: a service-role-only action returns people and records limited to entries, wages, corrections and stock. No table grants, RLS policies or business data were modified. Isolated SQL tests verify allowed record kinds, anonymous denial, service-role read, reservation fencing and rollback. Deployed Edge version 10 reads through this action and exposes only a fixed failure stage, not raw provider/DB errors.
+
+With `FRAID_GMAIL_MODE=test`, request 20 returned HTTP 200, `mail=accepted`, `test=true`, `deliveryConfirmed=false`. The delivery key `payroll-test:2026-08` is `sent`, attempts=1, provider identifier present, error=null. Exactly one SMTP message was accepted. Earlier HTTP failures did not send. Do not send the test again or clear its record. This is provider acceptance, not inbox confirmation.
+
+The owner must confirm inbox arrival of `TEST · Fraid · Výkaz hodín 2026-08` with its CSV attachment before regular mode is activated. Current regular Gmail delivery remains disabled (`test` mode). Scheduled configuration remains day 15, hour 8 Europe/Bratislava. Full-project backup/restore is still outstanding and this exception does not authorize unrelated database changes.
