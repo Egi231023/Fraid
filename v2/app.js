@@ -1,11 +1,13 @@
 import {previousMonth,payrollReport,expiryItems} from './reporting.js';
+import {isRecoveryLocation,mountRecovery} from './recovery.js';
 import {assistantView} from './assistant.js';
 import {config} from './config.js';
 import {esc as E,today,money,hours,number,addDays,weekStart,recipeCost,proposeWeek,csv} from './core.js';
 let payrollMonth=previousMonth(today()),deliveryState=null;
 const demo=new URLSearchParams(location.search).get('demo')==='1';
 const $=s=>document.querySelector(s), root=$('#app'),dialog=$('#dialog'),body=$('#dialog-body');
-const sb=window.supabase?.createClient(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const recovering=isRecoveryLocation(location);
+const sb=window.supabase?.createClient(config.url,config.key,{auth:{persistSession:!recovering,autoRefreshToken:true,detectSessionInUrl:true}});
 let session=null,me=null,people=[],records=[],audit=[],page='today',month=today().slice(0,7),week=weekStart(today()),filter='',category='',pending=null,refreshing=false;
 const labels={assistant:'Fraid pomocník',today:'Dnes',attendance:'Dochádzka',shifts:'Zmeny',recipes:'Receptúry',stock:'Sklad',checklists:'Checklisty',sales:'Tržby',notes:'Odkazy',team:'Tím',admin:'Administrácia',payroll:'Výplaty',settings:'Nastavenia',more:'Viac'};
 const admin=()=>me?.role==='admin';
@@ -112,6 +114,6 @@ async function act(action,id,b){if(!action)return;try{
 window.addEventListener('offline',()=>toast('Si offline. Nové zápisy počkajú na pripojenie.'));
 window.addEventListener('online',()=>toast('Pripojenie obnovené. Môžeš zopakovať neuložený zápis.'));
 window.addEventListener('focus',async()=>{if(session&&!dialog.open&&!refreshing){refreshing=true;try{await refresh();render();}catch{toast('Prehľad sa nepodarilo obnoviť.');}finally{refreshing=false;}}});
-async function boot(){if(demo){const d=await import('./demo.js');({people,records,me,audit}=d.fixture());session={user:{id:me.user_id}};render();return;}if(!sb){authView('Nepodarilo sa načítať prihlasovanie. Obnov stránku.');return;}const {data:s,error}=await sb.auth.getSession();if(error){authView(error.message);return;}session=s.session;if(session)try{pending=JSON.parse(sessionStorage.getItem(pendingKey())||'null');await refresh();}catch(err){authView('Nepodarilo sa načítať údaje. '+err.message);return;}render();sb.auth.onAuthStateChange((event,s)=>{session=s;if(event==='SIGNED_OUT'){me=null;people=[];records=[];audit=[];render();}});}
+async function boot(){if(recovering){if(!sb){authView('Obnov stránku a skús odkaz znova.');return;}await mountRecovery(sb,root);return;}if(demo){const d=await import('./demo.js');({people,records,me,audit}=d.fixture());session={user:{id:me.user_id}};render();return;}if(!sb){authView('Nepodarilo sa načítať prihlasovanie. Obnov stránku.');return;}const {data:s,error}=await sb.auth.getSession();if(error){authView(error.message);return;}session=s.session;if(session)try{pending=JSON.parse(sessionStorage.getItem(pendingKey())||'null');await refresh();}catch(err){authView('Nepodarilo sa načítať údaje. '+err.message);return;}render();sb.auth.onAuthStateChange((event,s)=>{session=s;if(event==='SIGNED_OUT'){me=null;people=[];records=[];audit=[];render();}});}
 boot().catch(e=>{root.innerHTML=`<main class="auth"><p class="error-text">${E(e.message)}</p><p>Obnov stránku a skús to znova.</p></main>`;});
 async function enablePush(){if(demo)throw Error('Notifikácie nie sú dostupné v ukážke.');if(!('serviceWorker' in navigator)||!('PushManager' in window))throw Error('Tento prehliadač nepodporuje push. Na iPhone otvor aplikáciu pridanú na plochu.');const perm=await Notification.requestPermission();if(perm!=='granted')throw Error('Notifikácie neboli povolené.');const {data:key,error}=await sb.functions.invoke('fraid-v2-push',{body:{action:'key'}});if(error)throw error;const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;const raw=atob(key.key.replace(/-/g,'+').replace(/_/g,'/'));const applicationServerKey=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey});const j=sub.toJSON();const {error:err}=await sb.from('fraid_v2_push').upsert({endpoint:j.endpoint,user_id:session.user.id,p256dh:j.keys.p256dh,auth:j.keys.auth});if(err)throw err;toast('Notifikácie sú zapnuté pre toto zariadenie.');}
