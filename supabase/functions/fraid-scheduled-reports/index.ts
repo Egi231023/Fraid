@@ -1,6 +1,7 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.116.0';
 import {previousMonth,payrollReport,payrollText,expiryItems} from './reporting.js';
 import {sendOne} from './webpush.ts';
+import {attachment,submitMail} from './mail.js';
 const json=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{'Content-Type':'application/json'}});
 Deno.serve(async(req)=>{
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
@@ -14,20 +15,19 @@ Deno.serve(async(req)=>{
  const health={mailConfigured:!!(apiKey&&from),pushConfigured:!!(pub&&priv)};await control({action:'health',details:health});
  if(input.dryrun)return json({...health,dryrun:true});
  const parts=Object.fromEntries(new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Bratislava',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
- const day=`${parts.year}-${parts.month}-${parts.day}`;if(Number(parts.hour)<config.local_hour)return json({waiting:true});
- const all=async(table:string)=>{const out:any[]=[];for(let start=0;;start+=1000){const {data,error}=await db.from(table).select('*').range(start,start+999);if(error)throw Error('Report data unavailable');out.push(...data);if(data.length<1000)break;}return out;};
+ const test=input.test===true;
+ const day=`${parts.year}-${parts.month}-${parts.day}`;if(!test&&Number(parts.hour)<config.local_hour)return json({waiting:true});
+ const all=async(table:string)=>{const out:any[]=[];for(let start=0;;start+=1000){let query=db.from(table).select('*');if(table==='fraid_v2_records')query=query.order('kind');const {data,error}=await query.order('id').range(start,start+999);if(error)throw Error('Report data unavailable');out.push(...data);if(data.length<1000)break;}return out;};
  const [people,records]=await Promise.all([all('fraid_v2_people'),all('fraid_v2_records')]);
  let mail='not_due',pushSent=0;
- if(Number(parts.day)===config.mail_day){
+ if(test||Number(parts.day)===config.mail_day){
   if(!health.mailConfigured)mail='not_configured';else{
-   const month=previousMonth(day),key='payroll:'+month,report=payrollReport(month,people,records);
-   const claimed=await control({action:'claim',key,report:{from,to:[config.recipient],subject:`Fraid · Výkaz hodín ${month}`,text:payrollText(report)}});
-   if(claimed.claimed){try{
-    const res=await fetch('https://api.resend.com/emails',{method:'POST',redirect:'error',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':'fraid-'+key},body:JSON.stringify(claimed.report)});
-    const result=await res.json();await control({action:'finish',key,ok:res.ok,providerId:res.ok?result.id:null,error:res.ok?null:`Email provider HTTP ${res.status}`});mail=res.ok?'sent':'failed';
-   }catch{await control({action:'finish',key,ok:false,error:'Email transport failure'});mail='failed';}}else mail='already_processed';
+   const month=previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
+   const claimed=await control({action:'claim',key,report:{from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),attachments:[attachment(report)]}});
+   if(claimed.claimed){const result=await submitMail(claimed.report,key,apiKey);await control({action:'finish',key,ok:result.ok,providerId:result.providerId,error:result.error});mail=result.state;}else mail='already_processed';
   }
  }
+ if(test)return json({mail,test:true,deliveryConfirmed:false});
  const expiring=expiryItems(records,day);
  if(expiring.length&&pub&&priv){
   const owners=people.filter(p=>p.active&&p.role==='admin'&&p.user_id).map(p=>p.user_id);
@@ -42,6 +42,6 @@ Deno.serve(async(req)=>{
    }
   }
  }
- return json({mail,pushSent});
+ return json({mail,pushSent,deliveryConfirmed:false});
  }catch{return json({error:'Scheduled reporting failed'},500);}
 });

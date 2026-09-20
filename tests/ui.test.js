@@ -5,9 +5,10 @@ test('all demo sections and edit dialogs render without errors and demo writes a
  dom.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};dom.window.HTMLDialogElement.prototype.close=function(){this.open=false;};
  await import('../v2/app.js?test=ui');await new Promise(r=>setTimeout(r,50));
  assert.match(document.body.textContent,/Dobrý deň, Eugen/);
- for(const page of ['attendance','shifts','recipes','stock','checklists','sales','notes','team','settings','more']){
+ for(const page of ['assistant','attendance','shifts','recipes','stock','checklists','sales','notes','team','settings','more']){
   const b=document.querySelector(`[data-page="${page}"]`);assert.ok(b,page);b.click();assert.ok(document.querySelector('#view').textContent.length>20,page);
  }
+ document.querySelector('[data-page="assistant"]').click();assert.match(document.querySelector('#view').textContent,/AI zatiaľ nie je aktivovaná/);assert.equal(document.querySelector('#ai-question').disabled,true);
  const actions=['shift-new','availability-new','recipe-new','stock-new','template-new','sale-new','note-new','idea-new','person-new','settings-edit'];
  for(const a of actions){document.querySelector('[data-page="more"]').click();const btn=document.createElement('button');btn.dataset.action=a;document.querySelector('#app').append(btn);btn.click();await new Promise(r=>setTimeout(r,0));assert.ok(document.querySelector('#dialog').open,a);assert.ok(document.querySelector('#editor'),a);document.querySelector('[data-action="close"]').click();}
  document.querySelector('[data-page="recipes"]').click();document.querySelector('[data-action="recipe-detail"]').click();assert.match(document.querySelector('#dialog-body').textContent,/Suroviny/);document.querySelector('[data-action="close"]').click();
