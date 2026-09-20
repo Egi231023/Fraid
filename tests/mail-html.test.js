@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import nodemailer from 'nodemailer';
+import {payrollHtml,attachment} from '../supabase/functions/fraid-scheduled-reports/mail.js';
+import {gmailMessage} from '../supabase/functions/fraid-scheduled-reports/gmail.js';
+test('HTML email escapes record content, retains warnings and ships both body formats plus CSV',async()=>{
+ const report={month:'2026-08',rows:[{name:'<img src=x onerror=alert(1)>',hours:2,hourly:5.5,amount:null,issues:['<script>bad()</script>','<script>bad()</script>']},{name:'Synthetic',hours:3,hourly:6,amount:18,issues:[]}],knownAmount:18,needsReview:true,rateNote:'Aktuálne sadzby & kontrola'};
+ const html=payrollHtml(report,{test:true});const dom=new JSDOM(html),doc=dom.window.document;
+ assert.equal(doc.querySelectorAll('script,img').length,0);
+ assert.equal(doc.querySelectorAll('tbody tr').length,2);
+ assert.equal(doc.querySelectorAll('thead th').length,4);
+ assert.match(doc.body.textContent,/Na kontrolu/);assert.match(doc.body.textContent,/Neúplný súčet/);assert.match(doc.body.textContent,/\(2×\)/);
+ assert.equal(doc.querySelector('a').href,'https://egi231023.github.io/Fraid/v2/');
+ const message=gmailMessage({to:['synthetic@example.com'],subject:'Synthetic',text:'Plain fallback',html,attachments:[attachment(report)]},'payroll-test:2026-08','synthetic@gmail.com');
+ const transport=nodemailer.createTransport({streamTransport:true,buffer:true});
+ const mime=(await transport.sendMail(message)).message.toString();
+ for(const type of ['multipart/alternative','text/plain','text/html','text/csv'])assert.ok(mime.includes(type));
+ dom.window.close();transport.close();
+});

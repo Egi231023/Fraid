@@ -1,7 +1,7 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.116.0';
 import {previousMonth,payrollReport,payrollText,expiryItems} from './reporting.js';
 import {sendOne} from './webpush.ts';
-import {attachment,submitMail} from './mail.js';
+import {attachment,submitMail,payrollHtml} from './mail.js';
 const json=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{'Content-Type':'application/json'}});
 Deno.serve(async(req)=>{
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
@@ -39,7 +39,7 @@ Deno.serve(async(req)=>{
    stage='report_calculation';
    const month=previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
    stage='report_claim';
-   const claimed=await control({action:'claim',key,report:{from:useGmail?gmailUser:from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),attachments:[attachment(report)]}});
+   const claimed=await control({action:'claim',key,report:{from:useGmail?gmailUser:from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),html:payrollHtml(report,{test}),attachments:[attachment(report)]}});
    if(claimed.claimed){
     if(useGmail){
      stage='smtp_delivery';

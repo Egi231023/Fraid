@@ -44,3 +44,9 @@ Initial requests 18 and 19 failed at `report_data` before any delivery row or SM
 With `FRAID_GMAIL_MODE=test`, request 20 returned HTTP 200, `mail=accepted`, `test=true`, `deliveryConfirmed=false`. The delivery key `payroll-test:2026-08` is `sent`, attempts=1, provider identifier present, error=null. Exactly one SMTP message was accepted. Earlier HTTP failures did not send. Do not send the test again or clear its record. This is provider acceptance, not inbox confirmation.
 
 The owner must confirm inbox arrival of `TEST · Fraid · Výkaz hodín 2026-08` with its CSV attachment before regular mode is activated. Current regular Gmail delivery remains disabled (`test` mode). Scheduled configuration remains day 15, hour 8 Europe/Bratislava. Full-project backup/restore is still outstanding and this exception does not authorize unrelated database changes.
+
+## HTML table — 2026-09-20
+
+Owner confirmed inbox arrival with a screenshot and requested a table. Deployed Edge version 11 with a four-column HTML table (name, reviewed hours, current hourly rate, provisional amount), numbered review notes below it, repeated-note counts, clear incomplete-total notice, plain-text fallback and unchanged CSV attachment. Dynamic text is HTML-escaped. Twelve focused email/adapter tests passed, including MIME alternatives, CSV retention and HTML injection checks. The accepted August test was not resent.
+
+Attempted regular-mode activation was rejected by automatic approval review: authorization covered one test, not recurring payroll emails. Do not retry or bypass. Regular mode remains pending explicit user approval for monthly reports to the existing admin recipient on day 15 at 08:00 Europe/Bratislava. HTML deployment is independent and complete.
