@@ -50,3 +50,7 @@ The owner must confirm inbox arrival of `TEST · Fraid · Výkaz hodín 2026-08`
 Owner confirmed inbox arrival with a screenshot and requested a table. Deployed Edge version 11 with a four-column HTML table (name, reviewed hours, current hourly rate, provisional amount), numbered review notes below it, repeated-note counts, clear incomplete-total notice, plain-text fallback and unchanged CSV attachment. Dynamic text is HTML-escaped. Twelve focused email/adapter tests passed, including MIME alternatives, CSV retention and HTML injection checks. The accepted August test was not resent.
 
 Attempted regular-mode activation was rejected by automatic approval review: authorization covered one test, not recurring payroll emails. Do not retry or bypass. Regular mode remains pending explicit user approval for monthly reports to the existing admin recipient on day 15 at 08:00 Europe/Bratislava. HTML deployment is independent and complete.
+
+## Monthly delivery enabled after explicit approval
+
+Owner then explicitly approved monthly delivery on day 15 at 08:00 Europe/Bratislava to the existing admin recipient. Updated FRAID_GMAIL_MODE from test to enabled and confirmed replacement in the dashboard. Request 23 returned HTTP 200 with mailConfigured=true, gmailTestConfigured=false, Gmail verified and messageSent=false. The existing hourly scheduler is active; its monthly date/time gate sends the preceding month's report. No additional test message was sent. The earlier automatic-review rejection has been resolved by this explicit approval.
