@@ -12,7 +12,9 @@ Deno.serve(async(req)=>{
  if(!(await control({action:'authorize',token}))?.authorized)return json({error:'Unauthorized'},401);
  const input=await req.json(),config=await control({action:'config'});if(!config)return json({error:'Recipient configuration missing'},503);
  const apiKey=Deno.env.get('RESEND_API_KEY'),from=Deno.env.get('FRAID_MAIL_FROM'),pub=Deno.env.get('VAPID_PUBLIC_KEY'),priv=Deno.env.get('VAPID_PRIVATE_KEY');
- const health={mailConfigured:!!(apiKey&&from),pushConfigured:!!(pub&&priv)};await control({action:'health',details:health});
+ const gmailUser=Deno.env.get('FRAID_GMAIL_USER'),gmailPassword=Deno.env.get('FRAID_GMAIL_APP_PASSWORD'),gmailMode=Deno.env.get('FRAID_GMAIL_MODE');
+ const gmailCredentials=!!(gmailUser&&gmailPassword),useGmail=gmailCredentials&&(gmailMode==='enabled'||(gmailMode==='test'&&input.test===true));
+ const health={mailConfigured:!!(apiKey&&from)||(gmailCredentials&&gmailMode==='enabled'),gmailTestConfigured:gmailCredentials&&gmailMode==='test',pushConfigured:!!(pub&&priv)};await control({action:'health',details:health});
  if(input.dryrun){
   const user=Deno.env.get('FRAID_GMAIL_USER'),password=Deno.env.get('FRAID_GMAIL_APP_PASSWORD');
   let gmail:unknown={state:'not_configured',messageSent:false};
@@ -29,10 +31,16 @@ Deno.serve(async(req)=>{
  const [people,records]=await Promise.all([all('fraid_v2_people'),all('fraid_v2_records')]);
  let mail='not_due',pushSent=0;
  if(test||Number(parts.day)===config.mail_day){
-  if(!health.mailConfigured)mail='not_configured';else{
+  if(!health.mailConfigured&&!useGmail)mail='not_configured';else{
+   if(useGmail&&!(await control({action:'smtp_ready'}))?.ready)return json({error:'SMTP reservation guard unavailable'},503);
    const month=previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
-   const claimed=await control({action:'claim',key,report:{from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),attachments:[attachment(report)]}});
-   if(claimed.claimed){const result=await submitMail(claimed.report,key,apiKey);await control({action:'finish',key,ok:result.ok,providerId:result.providerId,error:result.error});mail=result.state;}else mail='already_processed';
+   const claimed=await control({action:'claim',key,report:{from:useGmail?gmailUser:from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),attachments:[attachment(report)]}});
+   if(claimed.claimed){
+    if(useGmail){
+     const [{default:nodemailer},{sendReservedGmail}]=await Promise.all([import('npm:nodemailer@10.0.10'),import('./smtp-delivery.js')]);
+     const result=await sendReservedGmail(control,key,claimed,gmailUser,gmailPassword,nodemailer.createTransport);mail=result.state;
+    }else{const result=await submitMail(claimed.report,key,apiKey);await control({action:'finish',key,ok:result.ok,providerId:result.providerId,error:result.error});mail=result.state;}
+   }else mail='already_processed';
   }
  }
  if(test)return json({mail,test:true,deliveryConfirmed:false});
