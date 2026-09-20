@@ -11,6 +11,12 @@ Owner approved exploring Gmail instead of Resend on 2026-09-20; no domain availa
 3. Before wiring `submitGmail`, add and test a durable SMTP-attempt state under the existing database lease. SMTP lacks Resend idempotency: stable Message-ID is not a deduplication guarantee. An interrupted attempt must become terminal `uncertain`, including a worker crash between SMTP acceptance and database acknowledgement; automatic reclaims must not send again. Make schema/function backups and verify rollback before changes. Preserve existing cron and historical reports.
 4. Test authenticated SMTP connection without sending first. Provider may block cloud connections; do not weaken security to bypass a rejection. Then send one owner-authorized labelled test to the configured recipient, inspect provider/inbox evidence, and only then activate regular delivery.
 
-Current live scheduler is unchanged and mail remains unconfigured. No Gmail message or new secret has been created. Gmail credentials, live transport compatibility and final delivery have not been tested.
+## Connection verification — 2026-09-20
+
+The owner stored `FRAID_GMAIL_APP_PASSWORD` directly in the dashboard; `FRAID_GMAIL_USER` is also saved. Neither credential value was read back. Scheduled function version 6 adds authenticated dry-run connection verification using the pinned Nodemailer transport. Existing scheduled sends and push processing are unchanged; Gmail sending remains disconnected.
+
+Request 17 through the existing `dispatch_jobs(true)` entrypoint returned HTTP 200 with `gmail.state=verified` and `messageSent=false`. This verifies the deployed runtime can authenticate to Gmail, not message acceptance or inbox delivery. Five Gmail unit tests pass, including verification never calling sendMail, cleanup on failure, and sanitization of provider errors.
+
+Full current backup and isolated restore remain incomplete. Do not perform the durable-attempt database migration or activate SMTP sends before this owner-required gate passes. No test email has been sent. Rollback for the verification-only change: restore version 5's index.ts dry-run return and remove the added Gmail module; leave the owner's secrets untouched.
 
 References: https://support.google.com/accounts/answer/185833 ; https://developers.google.com/workspace/gmail/imap/imap-smtp ; https://supabase.com/docs/guides/functions/limits ; https://nodemailer.com/smtp

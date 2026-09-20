@@ -13,7 +13,15 @@ Deno.serve(async(req)=>{
  const input=await req.json(),config=await control({action:'config'});if(!config)return json({error:'Recipient configuration missing'},503);
  const apiKey=Deno.env.get('RESEND_API_KEY'),from=Deno.env.get('FRAID_MAIL_FROM'),pub=Deno.env.get('VAPID_PUBLIC_KEY'),priv=Deno.env.get('VAPID_PRIVATE_KEY');
  const health={mailConfigured:!!(apiKey&&from),pushConfigured:!!(pub&&priv)};await control({action:'health',details:health});
- if(input.dryrun)return json({...health,dryrun:true});
+ if(input.dryrun){
+  const user=Deno.env.get('FRAID_GMAIL_USER'),password=Deno.env.get('FRAID_GMAIL_APP_PASSWORD');
+  let gmail:unknown={state:'not_configured',messageSent:false};
+  if(user&&password){
+   const [{default:nodemailer},{verifyGmail}]=await Promise.all([import('npm:nodemailer@10.0.10'),import('./gmail.js')]);
+   gmail=await verifyGmail(user,password,nodemailer.createTransport);
+  }
+  return json({...health,dryrun:true,gmail});
+ }
  const parts=Object.fromEntries(new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Bratislava',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
  const test=input.test===true;
  const day=`${parts.year}-${parts.month}-${parts.day}`;if(!test&&Number(parts.hour)<config.local_hour)return json({waiting:true});
