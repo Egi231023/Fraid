@@ -28,6 +28,8 @@ Deno.serve(async(req)=>{
  }
  const parts=Object.fromEntries(new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Bratislava',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
  const test=input.test===true;
+ const requestedMonth=input.testMonth;
+ if(requestedMonth!==undefined&&(!test||![`${parts.year}-${parts.month}`,previousMonth(`${parts.year}-${parts.month}-01`)].includes(requestedMonth)))return json({error:'Invalid test month'},400);
  const day=`${parts.year}-${parts.month}-${parts.day}`;if(!test&&Number(parts.hour)<config.local_hour)return json({waiting:true});
  stage='report_data';
  const {people,records}=await control({action:'report_data'});
@@ -37,7 +39,7 @@ Deno.serve(async(req)=>{
    stage='smtp_guard';
    if(useGmail&&!(await control({action:'smtp_ready'}))?.ready)return json({error:'SMTP reservation guard unavailable'},503);
    stage='report_calculation';
-   const month=previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
+   const month=test&&requestedMonth!==undefined?requestedMonth:previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
    stage='report_claim';
    const claimed=await control({action:'claim',key,report:{from:useGmail?gmailUser:from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),html:payrollHtml(report,{test}),attachments:[attachment(report)]}});
    if(claimed.claimed){

@@ -54,3 +54,7 @@ Attempted regular-mode activation was rejected by automatic approval review: aut
 ## Monthly delivery enabled after explicit approval
 
 Owner then explicitly approved monthly delivery on day 15 at 08:00 Europe/Bratislava to the existing admin recipient. Updated FRAID_GMAIL_MODE from test to enabled and confirmed replacement in the dashboard. Request 23 returned HTTP 200 with mailConfigured=true, gmailTestConfigured=false, Gmail verified and messageSent=false. The existing hourly scheduler is active; its monthly date/time gate sends the preceding month's report. No additional test message was sent. The earlier automatic-review rejection has been resolved by this explicit approval.
+
+## Requested HTML test
+
+Owner explicitly requested another test after the table change. Version 13 permits an authenticated testMonth limited to the current or previous month, only with test=true; scheduled monthly selection remains unchanged. Sent the current September test without clearing or reusing the August delivery record. Request 25 returned HTTP 200 and mail=accepted. Key payroll-test:2026-09 has status sent, attempts=1, provider acceptance and HTML payload present. It is a partial current-month test, not a final September payroll. Awaiting inbox confirmation of the new format; do not resend automatically.
