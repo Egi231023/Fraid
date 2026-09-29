@@ -643,7 +643,7 @@ strong {
 .hero-edition {
   position: absolute;
   bottom: 17px;
-  right: 23px;
+  left: 40px;
   color: #a18b70;
   font-size: 0.42rem;
   letter-spacing: 2px;
@@ -1952,10 +1952,10 @@ pre {
     display: none;
   }
   .coffee-art {
-    width: 205px;
-    height: 205px;
-    right: -36px;
-    top: 35px;
+    width: 150px;
+    height: 150px;
+    right: -34px;
+    top: 151px;
     opacity: 0.9;
   }
   .ritual-orbit {
@@ -1969,6 +1969,7 @@ pre {
     font-size: 0.31rem;
     letter-spacing: 1px;
     right: 14px;
+    left: auto;
     bottom: 12px;
     color: #b59b79;
   }
@@ -2380,10 +2381,10 @@ pre {
     font-size: 3rem;
   }
   .coffee-art {
-    width: 180px;
-    height: 180px;
+    width: 138px;
+    height: 138px;
     right: -42px;
-    top: 46px;
+    top: 164px;
   }
   .ritual-hero {
     padding-left: 21px;
