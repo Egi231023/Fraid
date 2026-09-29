@@ -19,7 +19,11 @@
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", dark ? "#191816" : "#f5f1e9");
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(dark));
+      if (button.matches('input[type="checkbox"]')) {
+        button.checked = dark;
+      } else {
+        button.setAttribute("aria-pressed", String(dark));
+      }
       button.title = dark
         ? "Prepnúť na svetlý režim"
         : "Prepnúť na tmavý režim";

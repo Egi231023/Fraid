@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 const script = readFileSync(new URL("../v2/theme.js", import.meta.url), "utf8");
 function page({ dark = false, saved = null, blocked = false } = {}) {
   const dom = new JSDOM(
-    '<meta name="theme-color" content="#30241e"><button data-theme-toggle aria-label="Tmavý režim"></button><input value="Rozpísaný odkaz">',
+    '<meta name="theme-color" content="#30241e"><button data-theme-toggle aria-label="Tmavý režim"></button><input value="Rozpísaný odkaz"><label><input type="checkbox" switch data-theme-toggle aria-label="Tmavý režim"></label>',
     { url: "https://example.invalid/v2/", runScripts: "outside-only" },
   );
   const media = new dom.window.EventTarget();
@@ -49,6 +49,14 @@ test("theme follows the device until explicitly selected, persists and preserves
   reloaded.toggle();
   assert.equal(reloaded.doc.documentElement.dataset.theme, "light");
   assert.equal(reloaded.doc.querySelector("meta").content, "#f5f1e9");
+  const nativeSwitch = reloaded.doc.querySelector('input[switch]');
+  assert.equal(nativeSwitch.checked, false);
+  nativeSwitch.click();
+  assert.equal(nativeSwitch.checked, true);
+  assert.equal(reloaded.doc.documentElement.dataset.theme, 'dark');
+  nativeSwitch.click();
+  assert.equal(nativeSwitch.checked, false);
+  assert.equal(reloaded.doc.documentElement.dataset.theme, 'light');
   p.dom.window.close();
   reloaded.dom.window.close();
 });
@@ -72,6 +80,7 @@ test("theme updates when another tab changes the preference", () => {
     }),
   );
   assert.equal(p.doc.documentElement.dataset.theme, "dark");
+  assert.equal(p.doc.querySelector('input[switch]').checked, true);
   p.dom.window.dispatchEvent(
     new p.dom.window.StorageEvent("storage", {
       key: "fraid-theme",
