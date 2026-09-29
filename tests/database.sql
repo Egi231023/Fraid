@@ -21,7 +21,7 @@ do $$ declare result jsonb; before_version integer; begin
  result:=public.fraid_v2_write('{"op":"stock_move","data":{"stockId":"test-stock","type":"receive","quantity":10},"reason":"TEST","requestId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2"}');
  if (select (data->>'quantity')::numeric from public.fraid_v2_records where kind='stock' and id='test-stock')<>10 then raise exception 'FAIL duplicate receipt'; end if;
  begin perform public.fraid_v2_write('{"op":"save","kind":"stock","id":"test-stock","data":{"name":"stale","unit":"ks","minimum":2},"version":1,"requestId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3"}'); raise exception 'FAIL stale write'; exception when serialization_failure then null; end;
- result:=public.fraid_v2_write('{"op":"save","kind":"wages","id":"test-private-wage","data":{"employeeId":"test-admin","hourly":10},"version":0,"requestId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4"}');
+ result:=public.fraid_v2_write('{"op":"save","kind":"wages","id":"test-admin","reason":"test rate","data":{"employeeId":"test-admin","hourly":10,"effectiveFrom":"2026-01-01"},"version":0,"requestId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4"}');
 end $$;
 
 do $$ declare d jsonb; v integer; result jsonb; begin

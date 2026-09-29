@@ -2,6 +2,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.116.0';
 import {previousMonth,payrollReport,payrollText,expiryItems} from './reporting.js';
 import {sendOne} from './webpush.ts';
 import {attachment,submitMail,payrollHtml} from './mail.js';
+import {duePayrollMonths} from './schedule.js';
 const json=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{'Content-Type':'application/json'}});
 Deno.serve(async(req)=>{
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
@@ -34,12 +35,13 @@ Deno.serve(async(req)=>{
  stage='report_data';
  const {people,records}=await control({action:'report_data'});
  let mail='not_due',pushSent=0;
- if(test||Number(parts.day)===config.mail_day){
+ const dueMonths=test?[requestedMonth??previousMonth(day)]:duePayrollMonths(day,Number(parts.hour),config);
+ for(const month of dueMonths){
   if(!health.mailConfigured&&!useGmail)mail='not_configured';else{
    stage='smtp_guard';
    if(useGmail&&!(await control({action:'smtp_ready'}))?.ready)return json({error:'SMTP reservation guard unavailable'},503);
    stage='report_calculation';
-   const month=test&&requestedMonth!==undefined?requestedMonth:previousMonth(day),key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
+   const key=(test?'payroll-test:':'payroll:')+month,report=payrollReport(month,people,records);
    stage='report_claim';
    const claimed=await control({action:'claim',key,report:{from:useGmail?gmailUser:from,to:[config.recipient],subject:`${test?'TEST · ':''}Fraid · Výkaz hodín ${month}`,text:(test?'Test nastavenia e-mailu; nejde o potvrdenie vyplatenia.\n\n':'')+payrollText(report),html:payrollHtml(report,{test}),attachments:[attachment(report)]}});
    if(claimed.claimed){
@@ -48,6 +50,7 @@ Deno.serve(async(req)=>{
      const [{default:nodemailer},{sendReservedGmail}]=await Promise.all([import('npm:nodemailer@10.0.10'),import('./smtp-delivery.js')]);
      const result=await sendReservedGmail(control,key,claimed,gmailUser,gmailPassword,nodemailer.createTransport);mail=result.state;
     }else{const result=await submitMail(claimed.report,key,apiKey);await control({action:'finish',key,ok:result.ok,providerId:result.providerId,error:result.error});mail=result.state;}
+    break;
    }else mail='already_processed';
   }
  }

@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {payrollReport,previousMonth,expiryItems} from '../v2/reporting.js';
-const people=[{id:'a',name:'A'},{id:'b',name:'B'}];const entry=(id,a,b)=>({kind:'entries',id,owner_id:'a',data:{date:'2026-08-01',timeIn:a,timeOut:b}});const wage={kind:'wages',id:'a',data:{hourly:6}};
+const people=[{id:'a',name:'A'},{id:'b',name:'B'}];const entry=(id,a,b)=>({kind:'entries',id,owner_id:'a',data:{date:'2026-08-01',timeIn:a,timeOut:b}});const wage={kind:'wages',id:'a',data:{hourly:6,rates:[{effectiveFrom:'2026-01-01',hourly:6}]}};
 test('previous payroll month handles January',()=>assert.equal(previousMonth('2026-01-15'),'2025-12'));
 test('payroll totals minutes before money rounding and includes all profiles',()=>{const r=payrollReport('2026-08',people,[entry('one','08:00','09:30'),wage]);assert.equal(r.rows.length,2);assert.equal(r.rows[0].amount,9);});
 test('payroll never treats missing rates or incomplete attendance as final payout',()=>{let r=payrollReport('2026-08',people,[entry('one','08:00','09:00')]);assert.equal(r.rows[0].amount,null);r=payrollReport('2026-08',people,[entry('one','08:00',null),wage]);assert.equal(r.rows[0].amount,null);assert.equal(r.rows[0].minutes,0);});
