@@ -57,6 +57,99 @@ dialog h2 {
 .topline {
   height: 76px;
 }
+.topline-context {
+  min-width: 0;
+}
+.menu-back {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.menu-back .icon {
+  transform: rotate(180deg);
+  width: 18px;
+}
+.today-flow {
+  display: grid;
+  gap: 18px;
+  max-width: 900px;
+}
+.today-flow .card {
+  margin: 0;
+}
+.today-flow .card-heading {
+  margin-bottom: 4px;
+}
+.today-flow .section-link {
+  margin-top: 4px;
+}
+.daily-closing {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 21px 23px;
+  text-align: left;
+  background: var(--paper);
+  border-color: var(--line);
+  border-radius: 14px;
+}
+.daily-closing > .icon {
+  flex: none;
+  color: var(--brand);
+}
+.daily-closing > span {
+  display: grid;
+  gap: 5px;
+  flex: 1;
+}
+.daily-closing strong {
+  font-size: 0.95rem;
+}
+.daily-closing small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 450;
+  line-height: 1.5;
+}
+.today-attention {
+  border-top: 1px solid var(--line);
+}
+.today-attention button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.today-attention button span {
+  flex: 1;
+}
+.today-attention .icon {
+  width: 17px;
+  flex: none;
+}
+.audit-history > summary {
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 24px;
+}
+.audit-entries {
+  margin-top: 20px;
+}
 .breadcrumb,
 .date-chip {
   font-size: 0.82rem;
@@ -380,6 +473,15 @@ table {
 .tool-group {
   margin-bottom: 28px;
 }
+.menu-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 28px;
+  align-items: start;
+}
+.menu-sections > .tool-group:first-child {
+  grid-row: span 2;
+}
 .tool-group > h2 {
   margin-bottom: 12px;
   font-size: 0.95rem;
@@ -387,15 +489,26 @@ table {
 }
 .tools-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
 }
 .tool-row {
   display: flex;
   align-items: center;
   gap: 14px;
   text-align: left;
-  padding: 18px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: 72px;
+}
+.tool-row + .tool-row {
+  border-top: 1px solid var(--line);
 }
 .tool-row > .icon {
   color: var(--brand);
@@ -508,6 +621,22 @@ table {
   .shift-summary-actions .link {
     font-size: 0.8rem;
     min-height: 40px;
+  }
+  .today-flow {
+    gap: 14px;
+  }
+  .daily-closing {
+    padding: 18px;
+    gap: 12px;
+  }
+  .daily-closing strong {
+    font-size: 0.9rem;
+  }
+  .daily-closing small {
+    font-size: 0.77rem;
+  }
+  .menu-sections {
+    display: block;
   }
   .quick-actions {
     gap: 8px;
