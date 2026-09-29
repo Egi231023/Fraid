@@ -1825,35 +1825,37 @@ pre {
     margin-top: 0;
   }
   .content {
-    padding: 0 20px 115px;
+    padding: env(safe-area-inset-top, 0px)
+      max(20px, env(safe-area-inset-right, 0px)) 115px
+      max(20px, env(safe-area-inset-left, 0px));
   }
   .topline {
-    height: 84px;
-    gap: 10px;
+    height: 68px;
+    gap: 8px;
   }
   .topline-brand {
     display: block;
+    min-width: 0;
   }
   .topline-brand .brand {
     gap: 8px;
   }
   .topline-brand .brand img {
-    width: 33px;
-    height: 33px;
+    width: 30px;
+    height: 30px;
   }
   .topline-brand .brand > span {
-    font-size: 2.45rem;
+    font-size: 2.15rem;
   }
   .topline-brand .brand small {
-    font-size: 0.37rem;
-    letter-spacing: 1.5px;
-    margin-top: 8px;
+    display: none;
   }
   .breadcrumb {
     display: none;
   }
   .topline-actions {
-    gap: 8px;
+    gap: 5px;
+    flex-shrink: 0;
   }
   .date-chip {
     display: none;
@@ -1862,26 +1864,26 @@ pre {
     display: flex;
   }
   .topline .icon-button {
-    height: 39px;
-    width: 39px;
-    min-height: 39px;
-    min-width: 39px;
+    height: 44px;
+    width: 44px;
+    min-height: 44px;
+    min-width: 44px;
   }
   .topline .icon {
     width: 17px;
   }
   .page-heading {
-    margin: 29px 0 25px;
+    margin: 20px 0;
     gap: 17px;
   }
   .page-heading h1 {
-    font-size: 3.05rem;
+    font-size: clamp(2.1rem, 8.8vw, 2.7rem);
     letter-spacing: -1px;
   }
   .page-heading .eyebrow {
     font-size: 0.54rem;
     letter-spacing: 1.6px;
-    margin-bottom: 11px;
+    margin-bottom: 8px;
   }
   .page-heading p {
     font-size: 0.77rem;
@@ -1894,15 +1896,15 @@ pre {
     font-size: 0.73rem;
   }
   .dashboard-heading h1 {
-    font-size: 3.15rem;
+    font-size: clamp(2.1rem, 8.8vw, 2.7rem);
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
   }
   .dashboard-heading {
     align-items: flex-start;
   }
   .day-seal {
-    width: 51px;
-    height: 51px;
-    margin-top: 18px;
+    display: none;
   }
   .day-seal .icon {
     width: 18px;
@@ -1913,38 +1915,42 @@ pre {
     letter-spacing: 0.9px;
   }
   .ritual-hero {
-    min-height: 307px;
+    min-height: 0;
     border-radius: 17px;
-    padding: 28px 24px 28px;
+    padding: 22px;
   }
   .hero-copy {
     width: 100%;
     max-width: none;
   }
   .hero-copy h2 {
-    font-size: 3.4rem;
+    font-size: 2.7rem;
     letter-spacing: -1px;
+    margin-bottom: 14px;
     position: relative;
     z-index: 2;
   }
   .hero-kicker {
-    font-size: 0.49rem;
-    letter-spacing: 1.4px;
-    margin-bottom: 22px;
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    max-width: calc(100% - 50px);
   }
   .hero-copy p {
-    font-size: 0.68rem;
-    max-width: 63%;
-    margin-top: 20px;
-    margin-bottom: 21px;
+    font-size: 0.78rem;
+    max-width: 100%;
+    margin-top: 14px;
+    margin-bottom: 18px;
     line-height: 1.65;
   }
   .hero-actions {
     gap: 12px;
   }
   .hero-actions .hero-button {
-    font-size: 0.69rem;
-    min-height: 46px;
+    font-size: 0.8rem;
+    min-height: 48px;
+    width: 100%;
+    justify-content: space-between;
     padding: 12px 14px;
     gap: 12px;
   }
@@ -1952,26 +1958,20 @@ pre {
     display: none;
   }
   .coffee-art {
-    width: 150px;
-    height: 150px;
-    right: -34px;
-    top: 151px;
-    opacity: 0.9;
+    width: 90px;
+    height: 90px;
+    right: 4px;
+    top: 9px;
+    opacity: 0.8;
   }
   .ritual-orbit {
-    inset: 9%;
-    opacity: 0.6;
+    display: none;
   }
   .ritual-caption {
     display: none;
   }
   .hero-edition {
-    font-size: 0.31rem;
-    letter-spacing: 1px;
-    right: 14px;
-    left: auto;
-    bottom: 12px;
-    color: #b59b79;
+    display: none;
   }
   .section-caption {
     margin-top: 24px;
@@ -2368,23 +2368,23 @@ pre {
 }
 @media (max-width: 370px) {
   .content {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: max(15px, env(safe-area-inset-left, 0px));
+    padding-right: max(15px, env(safe-area-inset-right, 0px));
   }
   .dashboard-heading h1 {
-    font-size: 2.85rem;
+    font-size: 2.1rem;
   }
   .day-seal {
     display: none;
   }
   .hero-copy h2 {
-    font-size: 3rem;
+    font-size: 2.45rem;
   }
   .coffee-art {
-    width: 138px;
-    height: 138px;
-    right: -42px;
-    top: 164px;
+    width: 76px;
+    height: 76px;
+    right: 4px;
+    top: 10px;
   }
   .ritual-hero {
     padding-left: 21px;
