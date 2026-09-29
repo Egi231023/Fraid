@@ -18,7 +18,7 @@ let session=null,me=null,people=[],records=[],audit=[],page='today',month=today(
 const labels={today:'Dnes',attendance:'Dochádzka',shifts:'Smeny',recipes:'Recepty',stock:'Sklad',checklists:'Úlohy',sales:'Tržby',notes:'Odkazy',team:'Tím',admin:'Kontrola prevádzky',payroll:'Výplaty',settings:'Nastavenia',more:'Menu',assistant:'Fraid pomocník'};
 const primaryPages=['today','shifts','recipes','more'];
 const admin=()=>me?.role==='admin';
-const themeButton=()=>`<label class="theme-control theme-toggle"><span class="theme-moon" aria-hidden="true">${icon('moon')}</span><span class="theme-sun" aria-hidden="true">${icon('sun')}</span><input type="checkbox" switch data-theme-toggle aria-label="Tmavý režim" ${document.documentElement.dataset.theme==='dark'?'checked':''} title="${document.documentElement.dataset.theme==='dark'?'Prepnúť na svetlý režim':'Prepnúť na tmavý režim'}"></label>`;
+const themeButton=()=>`<label class="theme-control theme-toggle"><span class="theme-moon" aria-hidden="true">${icon('moon')}</span><span class="theme-sun" aria-hidden="true">${icon('sun')}</span><input type="checkbox" switch class="${'switch' in document.createElement('input')?'':'switch-fallback'}" data-theme-toggle aria-label="Tmavý režim" ${document.documentElement.dataset.theme==='dark'?'checked':''} title="${document.documentElement.dataset.theme==='dark'?'Prepnúť na svetlý režim':'Prepnúť na tmavý režim'}"></label>`;
 const list=k=>records.filter(r=>r.kind===k&&r.data.status!=='void');
 const data=k=>list(k).map(r=>({...r.data,id:r.id,_version:r.version,_owner:r.owner_id}));
 const rec=(k,id)=>records.find(r=>r.kind===k&&r.id===id);

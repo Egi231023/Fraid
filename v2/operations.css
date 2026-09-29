@@ -26,6 +26,28 @@ html, body, #app, dialog, .table-scroll, textarea {
 .theme-control > span {
   pointer-events: none;
 }
+.theme-control input.switch-fallback {
+  appearance: none;
+  position: relative;
+  border-radius: 20px;
+  background: var(--line);
+}
+.theme-control input.switch-fallback::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 3px;
+  left: 3px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+.theme-control input.switch-fallback:checked {
+  background: var(--brand);
+}
+.theme-control input.switch-fallback:checked::before {
+  left: 19px;
+}
 .theme-control .icon {
   width: 16px;
   height: 16px;
