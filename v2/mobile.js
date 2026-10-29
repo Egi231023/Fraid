@@ -1,4 +1,4 @@
-// Keep touch scrolling, suppress app zoom gestures, and use supported haptics.
+// Preserve native scrolling and accessibility zoom; add only supported haptics.
 export function initMobileControls(doc = document, win = window) {
   let lastTap = -Infinity;
   function vibrate(duration) {
@@ -18,15 +18,5 @@ export function initMobileControls(doc = document, win = window) {
     vibrate(10);
   }, { capture: true });
 
-  const stopGesture = event => {
-    if (event.cancelable) event.preventDefault();
-  };
-  // Safari's gesture events supplement touch-action on older iOS versions.
-  for (const type of ['gesturestart', 'gesturechange']) {
-    doc.addEventListener(type, stopGesture, { passive: false });
-  }
-  doc.addEventListener('touchmove', event => {
-    if (event.touches.length > 1) stopGesture(event);
-  }, { passive: false });
   return { success: () => vibrate(22) };
 }

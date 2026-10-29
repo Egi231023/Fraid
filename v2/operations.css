@@ -1,6 +1,6 @@
 /* Fraid's working interface: clear labels, compact summaries, direct actions. */
 html, body, #app, dialog, .table-scroll, textarea {
-  touch-action: pan-x pan-y;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 .theme-control {
   display: inline-flex;
@@ -591,6 +591,285 @@ table {
   font-weight: 450;
   line-height: 1.5;
 }
+/* A compact agenda keeps empty days from hiding today's working shifts. */
+.schedule-tabs {
+  margin-bottom: 18px;
+}
+.month-navigation {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+}
+.month-navigation label {
+  min-width: 0;
+  max-width: 220px;
+}
+.month-navigation input {
+  min-width: 0;
+  width: 100%;
+}
+.month-navigation > button {
+  min-width: 44px;
+  padding: 8px;
+  font-size: 1.3rem;
+}
+.schedule-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.schedule-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.schedule-legend i {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  background: var(--paper);
+}
+.schedule-legend .draft-key i {
+  border: 1px dashed var(--brand);
+}
+.schedule-hint {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+.month-table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  scrollbar-color: var(--brand) var(--bg);
+}
+.schedule-month-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+.schedule-month-table caption {
+  text-align: left;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.schedule-month-table th,
+.schedule-month-table td {
+  min-width: 76px;
+  width: 76px;
+  max-width: 76px;
+  padding: 7px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  text-align: center;
+}
+.schedule-month-table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 150px;
+  max-width: 150px;
+  width: 150px;
+  padding: 14px;
+  text-align: left;
+  background: var(--paper);
+  box-shadow: 2px 0 4px #00000008;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.schedule-month-table thead th {
+  background: var(--bg);
+}
+.schedule-month-table th button {
+  display: grid;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+}
+.schedule-month-table th button > span {
+  font-size: 1rem;
+}
+.schedule-month-table th small {
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.schedule-staff-name {
+  display: block;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.schedule-month-table .is-today {
+  background: var(--bg);
+  box-shadow: inset 0 3px var(--brand);
+}
+.month-shift {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  padding: 8px 3px;
+  margin-bottom: 6px;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.month-shift.is-draft {
+  border: 1px dashed var(--brand);
+}
+.month-shift small {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+.no-shift {
+  display: block;
+  padding: 10px 0;
+  color: var(--muted);
+}
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.week-navigation button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+  font-size: 1.3rem;
+}
+#schedule-range {
+  font-size: 0.88rem;
+  text-align: center;
+  line-height: 1.5;
+  min-width: 0;
+}
+.schedule-week {
+  margin: 0 0 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.schedule-day {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 22px;
+  padding: 16px 20px;
+  scroll-margin-top: 14px;
+}
+.schedule-day + .schedule-day {
+  border-top: 1px solid var(--line);
+}
+.schedule-day.is-today {
+  box-shadow: inset 4px 0 var(--brand);
+  background: var(--bg);
+}
+.schedule-day.is-empty {
+  align-items: center;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.schedule-day-heading {
+  display: flex;
+  align-content: start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+}
+.schedule-day-heading h3 {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-transform: capitalize;
+  width: 100%;
+}
+.schedule-day-heading time {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.schedule-day-content {
+  min-width: 0;
+}
+.schedule-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 0;
+  line-height: 1.5;
+}
+.schedule-shift {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+.schedule-shift + .schedule-shift {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.schedule-person {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.schedule-person .avatar {
+  width: 34px;
+  height: 34px;
+}
+.schedule-person > span:not(.badge) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.schedule-person strong {
+  font-size: 0.88rem;
+}
+.schedule-person small {
+  font-size: 0.8rem;
+}
+.schedule-shift-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.schedule-shift-actions button {
+  min-height: 44px;
+}
 @media (max-width: 1000px) {
   .quick-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -604,6 +883,43 @@ table {
   }
 }
 @media (max-width: 760px) {
+  .schedule-month-table th:first-child {
+    min-width: 108px;
+    max-width: 108px;
+    width: 108px;
+    padding: 10px;
+  }
+  .schedule-toolbar {
+    gap: 10px;
+  }
+  .week-navigation {
+    flex: 1 0 100%;
+    justify-content: space-between;
+  }
+  .schedule-day {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+  .schedule-day.is-empty {
+    grid-template-columns: minmax(90px, 0.85fr) minmax(0, 1.15fr);
+    gap: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .schedule-day:not(.is-empty) .schedule-day-heading h3 {
+    width: auto;
+  }
+  .schedule-person {
+    gap: 8px;
+  }
+  .schedule-shift-actions {
+    width: 100%;
+  }
+  .schedule-shift-actions button {
+    flex: 1;
+    padding: 9px 10px;
+  }
   .content {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
