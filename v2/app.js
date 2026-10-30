@@ -72,11 +72,36 @@ function goToPage(section,{attention=false}={}){
  }finally{nextAttendanceReview=false;}
 }
 async function loadRecords(){const rows=[];for(let offset=0;;offset+=500){const r=await sb.from('fraid_v2_records').select('*').order('kind').order('id').range(offset,offset+499);if(r.error)return r;rows.push(...r.data);if(r.data.length<500)return {data:rows,error:null};}}
-async function refresh(){if(demo)return;const rr=await Promise.all([sb.from('fraid_v2_people').select('*'),loadRecords()]);for(const r of rr)if(r.error)throw r.error;people=rr[0].data;records=rr[1].data.sort((a,b)=>b.updated_at.localeCompare(a.updated_at));me=people.find(p=>p.user_id===session?.user.id&&p.active);if(admin()){const a=await sb.from('fraid_v2_audit').select('*').order('created_at',{ascending:false}).limit(150);if(a.error)throw a.error;audit=a.data;const ds=await sb.rpc('fraid_delivery_status');deliveryState=ds.error?null:ds.data;}}
+let refreshGeneration=0;
+async function refresh(){
+ if(demo)return false;
+ const generation=++refreshGeneration,userId=session?.user.id;
+ const current=()=>generation===refreshGeneration&&userId===session?.user.id;
+ const rr=await Promise.all([sb.from('fraid_v2_people').select('*'),loadRecords()]);
+ if(!current())return false;
+ for(const r of rr)if(r.error)throw r.error;
+ const nextPeople=rr[0].data,nextRecords=rr[1].data.sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
+ const nextMe=nextPeople.find(p=>p.user_id===userId&&p.active);
+ let nextAudit=[],nextDelivery=null;
+ if(nextMe?.role==='admin'){
+  const a=await sb.from('fraid_v2_audit').select('*').order('created_at',{ascending:false}).limit(150);
+  if(!current())return false;
+  if(a.error)throw a.error;
+  nextAudit=a.data;
+  const ds=await sb.rpc('fraid_delivery_status');
+  if(!current())return false;
+  nextDelivery=ds.error?null:ds.data;
+ }
+ // Publish one complete snapshot only. Older requests or a signed-out session
+ // must never replace a newer view, even when their network response arrives last.
+ if(!current())return false;
+ people=nextPeople;records=nextRecords;me=nextMe;audit=nextAudit;deliveryState=nextDelivery;
+ return true;
+}
 const pendingKey=()=> 'fraid-v2-pending-'+session?.user.id;
 function rememberPending(){try{pending?sessionStorage.setItem(pendingKey(),JSON.stringify(pending)):sessionStorage.removeItem(pendingKey());}catch{if(pending){pending=null;throw Error('Prehliadač nedokáže bezpečne uchovať rozpracovaný zápis. Zápis nebol odoslaný. Uvoľni miesto a skús znova.');}}}
 async function write(p){if(demo)throw Error('Ukážka je iba na prezeranie. Žiadne údaje sa neukladajú.');if(!navigator.onLine)throw Error('Si offline. Formulár zostal vyplnený. Po pripojení skús uložiť znova.');
- if(pending)throw Error('Najprv over pôvodný nejasný zápis tlačidlom Overiť uloženie.');pending={...p,requestId:crypto.randomUUID()};rememberPending();toast('Ukladám…');const out=await submitOperation(sb,pending,()=>{pending=null;rememberPending();});feedback.success();toast('Uložené.');try{await refresh();}catch{toast('Uložené, ale prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}return out;}
+ if(pending)throw Error('Najprv over pôvodný nejasný zápis tlačidlom Overiť uloženie.');pending={...p,requestId:crypto.randomUUID()};rememberPending();toast('Ukladám…');const out=await submitOperation(sb,pending,()=>{pending=null;rememberPending();});feedback.success();toast('Uložené.');try{if(!await refresh())toast('Uložené, ale prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}catch{toast('Uložené, ale prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}return out;}
 // Expected versions belong to the snapshot shown when an editor opened. Never
 // substitute a newer cache version while the user is still editing an old draft.
 async function save(k,id,d,reason='',expectedVersion=0){return write({op:'save',kind:k,id:id||crypto.randomUUID(),version:expectedVersion,data:d,reason});}
@@ -223,7 +248,7 @@ function ingredient(i={}){return `<div class="ingredient">${field('Surovina','in
 function recipeForm(id,restoring=false){if(!admin())throw Error('Vyžaduje sa administrátor.');const r=rec('recipes',id),d=r?.data||{};modal(restoring?'Obnoviť recept':id?'Upraviť recept':'Nový recept',`${field('Názov','name',d.name||'','text','required')}${field('Kategória','category',d.category||'Ostatné')}<label class="full">Fotografia (max. 800 kB)<input name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="full" id="ingredients">${(d.ingredients?.length?d.ingredients:[{}]).map(ingredient).join('')}</div><div class="full">${button('+ Surovina','ingredient-add')}</div>${area('Postup','steps',d.steps||'')}${restoring?'<p class="full muted">Skontroluj suroviny a množstvá. Po obnovení bude recept opäť dostupný celému tímu.</p>':''}`,restoring?'Obnoviť recept':'Uložiť recept',async(v,form)=>{const ingredients=[...form.querySelectorAll('.ingredient')].map(el=>({name:el.querySelector('[name=ingName]').value,quantity:number(el.querySelector('[name=ingQuantity]').value),unit:el.querySelector('[name=ingUnit]').value,stockId:el.querySelector('[name=ingStock]').value||null}));let photo=d.photo||null;const f=form.querySelector('[name=photo]').files[0];if(f){if(f.size>800000||!['image/png','image/jpeg','image/webp'].includes(f.type))throw Error('Použi PNG, JPG alebo WebP do 800 kB.');photo=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(f);});}await save('recipes',id,{...d,...(restoring?{status:'active'}:{}),name:v.name,category:v.category,steps:v.steps,ingredients,photo},restoring?'Obnovenie vymazaného receptu':'',r?.version||0);if(restoring||!id){recipesArchived=false;filter='';category='';}});}
 function exportFile(filename,rows){const u=URL.createObjectURL(new Blob([csv(rows)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
 async function propose(){const proposal=proposeWeek(week,people,data('availability'),data('shifts'),settings());modal('Návrh rozpisu',`<div class="full"><p>Rozdeľuje hodiny medzi ľudí, ktorí uviedli dostupnosť. Nič sa ešte nezverejnilo.</p>${proposal.draft.map(s=>`<div class="item"><span>${E(s.date)} · ${E(name(s.employeeId))}</span><strong>${E(s.startTime)}–${E(s.endTime)}</strong></div>`).join('')||empty('Žiadne nové zmeny na navrhnutie.')}${proposal.unfilled.length?`<div class="notice">Neobsadené intervaly: ${proposal.unfilled.map(g=>E(g.date+' '+g.startTime+'–'+g.endTime+' · chýba '+g.missing+' os.')).join('<br>')}</div>`:''}</div>`,proposal.draft.length?'Uložiť návrh':null,()=>batch(proposal.draft.map(d=>({op:'save',kind:'shifts',id:crypto.randomUUID(),version:0,data:d}))));}
-async function batch(items){if(demo)throw Error('Ukážka je iba na prezeranie.');if(!navigator.onLine)throw Error('Si offline. Skús to po pripojení.');if(pending)throw Error('Najprv over predchádzajúci zápis.');pending={requestId:crypto.randomUUID(),items:items.map(p=>({...p,requestId:crypto.randomUUID()}))};rememberPending();toast('Ukladám návrh…');await submitOperation(sb,pending,()=>{pending=null;rememberPending();});feedback.success();try{await refresh();toast('Návrh uložený. Pred publikovaním ho skontroluj.');}catch{toast('Návrh uložený, prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}}
+async function batch(items){if(demo)throw Error('Ukážka je iba na prezeranie.');if(!navigator.onLine)throw Error('Si offline. Skús to po pripojení.');if(pending)throw Error('Najprv over predchádzajúci zápis.');pending={requestId:crypto.randomUUID(),items:items.map(p=>({...p,requestId:crypto.randomUUID()}))};rememberPending();toast('Ukladám návrh…');await submitOperation(sb,pending,()=>{pending=null;rememberPending();});feedback.success();try{toast(await refresh()?'Návrh uložený. Pred publikovaním ho skontroluj.':'Návrh uložený, prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}catch{toast('Návrh uložený, prehľad sa nepodarilo obnoviť. Použi Obnoviť.');}}
 root.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.page){goToPage(b.dataset.page);return;}await act(b.dataset.action,b.dataset.id,b);});
 body.addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(b)await act(b.dataset.action,b.dataset.id,b);});
 async function act(action,id,b){if(!action)return;try{
@@ -234,10 +259,10 @@ async function act(action,id,b){if(!action)return;try{
   retrying=true;b.disabled=true;const editor=body.querySelector('#editor'),wasOpen=dialog.open;
   try{await submitOperation(sb,pending,()=>{pending=null;rememberPending();});
    if(wasOpen&&dialog.open&&body.querySelector('#editor')===editor)modals.close();
-   try{await refresh();render();toast('Pôvodný zápis je potvrdený.');}catch{render();toast('Pôvodný zápis potvrdený, prehľad sa nepodarilo obnoviť.');}
+   try{const applied=await refresh();render();toast(applied?'Pôvodný zápis je potvrdený.':'Pôvodný zápis potvrdený, prehľad sa nepodarilo obnoviť.');}catch{render();toast('Pôvodný zápis potvrdený, prehľad sa nepodarilo obnoviť.');}
   }finally{retrying=false;}
  }break;
- case 'refresh':b.disabled=true;await refresh();render();toast('Údaje obnovené.');break;
+ case 'refresh':b.disabled=true;if(await refresh()){render();toast('Údaje obnovené.');}break;
  case 'logout':if(demo){location.search='';return;}const signedOut=await sb.auth.signOut();if(signedOut.error)throw Error('Odhlásenie sa nepodarilo potvrdiť. Skús znova.');navigation.destroy();page='today';session=null;me=null;records=[];people=[];audit=[];authView();break;
  case 'attendance-review':goToPage('attendance',{attention:true});break;
  case 'attendance-month':attendanceOnlyAttention=false;render();break;
@@ -279,7 +304,7 @@ async function act(action,id,b){if(!action)return;try{
  }catch(err){toast(err.message||'Operácia sa nepodarila.');}finally{if(b?.isConnected)b.disabled=false;}}
 window.addEventListener('offline',()=>toast('Si offline. Nové zápisy počkajú na pripojenie.'));
 window.addEventListener('online',()=>toast('Pripojenie obnovené. Môžeš zopakovať neuložený zápis.'));
-window.addEventListener('focus',async()=>{if(session&&!dialog.open&&!refreshing){refreshing=true;try{await refresh();render();}catch{toast('Prehľad sa nepodarilo obnoviť.');}finally{refreshing=false;}}});
+window.addEventListener('focus',async()=>{if(session&&!dialog.open&&!refreshing){refreshing=true;try{if(await refresh())render();}catch{toast('Prehľad sa nepodarilo obnoviť.');}finally{refreshing=false;}}});
 async function boot(){if(!recovering&&new URLSearchParams(location.search).get('forgot')==='1'){mountForgotPassword(sb,root);return;}if(recovering){if(!sb){authView('Obnov stránku a skús odkaz znova.');return;}await mountRecovery(sb,root);return;}if(demo){const d=await import('./demo.js');({people,records,me,audit}=d.fixture());session={user:{id:me.user_id}};render();return;}if(!sb){authView('Nepodarilo sa načítať prihlasovanie. Obnov stránku.');return;}const {data:s,error}=await sb.auth.getSession();if(error){authView(error.message);return;}session=s.session;if(session)try{pending=JSON.parse(sessionStorage.getItem(pendingKey())||'null');await refresh();}catch(err){authView('Nepodarilo sa načítať údaje. '+err.message);return;}render();sb.auth.onAuthStateChange((event,s)=>{session=s;if(event==='SIGNED_OUT'){navigation.destroy();page='today';me=null;people=[];records=[];audit=[];render();}});}
 boot().catch(e=>{root.innerHTML=`<main class="auth"><p class="error-text">${E(e.message)}</p><p>Obnov stránku a skús to znova.</p></main>`;});
 async function enablePush(){if(demo)throw Error('Notifikácie nie sú dostupné v ukážke.');if(!('serviceWorker' in navigator)||!('PushManager' in window))throw Error('Tento prehliadač nepodporuje push. Na iPhone otvor aplikáciu pridanú na plochu.');const perm=await Notification.requestPermission();if(perm!=='granted')throw Error('Notifikácie neboli povolené.');const {data:key,error}=await sb.functions.invoke('fraid-v2-push',{body:{action:'key'}});if(error)throw error;const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;const raw=atob(key.key.replace(/-/g,'+').replace(/_/g,'/'));const applicationServerKey=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey});const j=sub.toJSON();const {error:err}=await sb.from('fraid_v2_push').upsert({endpoint:j.endpoint,user_id:session.user.id,p256dh:j.keys.p256dh,auth:j.keys.auth});if(err)throw err;toast('Notifikácie sú zapnuté pre toto zariadenie.');}
