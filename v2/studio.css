@@ -382,3 +382,8 @@ dialog[open] { animation: none; }
 }
 .month-readable-value { display: none; }
 @media (max-width: 760px) { .month-readable-value { display: block; margin: 6px 0; font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--ink); overflow-wrap: normal; } }
+/* Keep the top controls below the iPhone status area, with the normal 12px gutter. */
+@media (max-width: 760px) {
+ .sidebar, [data-theme="dark"] .sidebar { top: calc(env(safe-area-inset-top, 0px) + 12px); }
+ .content { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+}
