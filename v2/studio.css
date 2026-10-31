@@ -388,3 +388,17 @@ dialog[open] { animation: none; }
  .sidebar, [data-theme="dark"] .sidebar { top: calc(env(safe-area-inset-top, 0px) + var(--mobile-top-gutter)); height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--mobile-top-gutter) - 12px); }
  .content { padding-top: calc(env(safe-area-inset-top, 0px) + var(--mobile-top-gutter)); }
 }
+
+/* Personal monthly earnings inside the attendance card, below its actions. */
+#view .shift-summary .personal-earnings { width: 100%; min-width: 0; box-sizing: border-box; margin-top: 18px; padding-top: 15px; border-top: 1px solid #d6e5c340; }
+#view .personal-earnings .earnings-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 12px; }
+#view .personal-earnings h3 { margin: 0; font-size: .88rem; line-height: 1.4; font-weight: 600; letter-spacing: -.1px; }
+#view .personal-earnings .earnings-amount { display: block; font-size: 1.55rem; line-height: 1.2; letter-spacing: -.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: #f0f5df; }
+#view .personal-earnings .earnings-amount.is-incomplete { font-size: 1rem; color: #f4dfb2; }
+#view .personal-earnings p { margin: 7px 0 0; overflow-wrap: anywhere; font-size: .78rem; line-height: 1.5; }
+#view .personal-earnings .earnings-period { color: #e0e3d8; }
+#view .personal-earnings .earnings-warning { color: #f4dfb2; }
+#view .personal-earnings .earnings-details { margin-top: 7px; font-size: .75rem; color: #d9ded2; }
+#view .personal-earnings .earnings-details summary { cursor: pointer; padding: 6px 0; min-height: 28px; line-height: 1.4; }
+#view .personal-earnings .earnings-details p { font-size: .75rem; color: #d9ded2; }
+@media (max-width: 760px) { #view .shift-summary .personal-earnings { margin-top: 14px; padding-top: 12px; } #view .personal-earnings .earnings-amount { font-size: 1.35rem; } }
