@@ -225,3 +225,48 @@ dialog, [data-theme="dark"] dialog { position: fixed; inset: auto; left: 50%; to
  .sidebar nav::-webkit-scrollbar { display: none; }
  .sidebar .nav, [data-theme="dark"] .sidebar .nav { width: 100%; font-size: 10px; line-height: 1.3; }
 }
+/* Content refinement: same lounge shell, calmer hierarchy within its panels. */
+#view { line-height: 1.6; }
+#view .page-heading { padding-bottom: 20px; border-bottom: 1px solid #ffffff1c; margin-bottom: 24px; }
+#view .page-heading h1 { line-height: 1.16; font-weight: 650; letter-spacing: -.035em; }
+#view .page-heading p { max-width: 62ch; margin-top: 9px; line-height: 1.65; }
+#view :is(.card,.daily-closing,.recipe-row,.stat-card) { border-color: #ffffff24; box-shadow: 0 12px 30px #00000012, inset 0 1px #ffffff14; }
+#view .card-heading { gap: 12px; margin-bottom: 20px; }
+#view .card-heading h2 { font-size: 1.05rem; font-weight: 650; letter-spacing: -.015em; line-height: 1.4; }
+#view .shift-summary h2 { font-weight: 600; line-height: 1.18; letter-spacing: -.035em; }
+#view .shift-label { letter-spacing: .025em; font-size: .75rem; }
+#view .task-row { padding-top: 16px; padding-bottom: 16px; }
+#view .task-label strong { font-weight: 550; line-height: 1.5; }
+#view .task-label small { display: block; margin-top: 4px; font-size: .73rem; }
+#view .section-link { font-weight: 600; padding-top: 16px; }
+#view :is(button,input,select,textarea) { border-radius: 13px; }
+#view button { font-weight: 550; }
+#view button.primary, #view button.accent { box-shadow: inset 0 1px #ffffff88, 0 5px 16px #00000014; }
+#view :is(.recipe-tabs,.schedule-tabs) { gap: 4px; padding: 5px; }
+#view :is(.recipe-tabs,.schedule-tabs) button { min-height: 42px; }
+#view .recipe-summary strong { letter-spacing: -.015em; font-weight: 600; }
+#view .recipe-summary small { margin-top: 5px; line-height: 1.5; }
+#view .recipe-row { margin-bottom: 12px; }
+#view .overview-grid { gap: 14px; }
+#view .overview-grid .stat-card { padding: 20px; border-radius: 19px; }
+#view .stat-value { font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1.2; margin-top: 8px; }
+#view table { font-variant-numeric: tabular-nums; }
+#view table:not(.schedule-month-table) :is(th,td) { padding: 15px 14px; vertical-align: middle; border-color: #ffffff19; }
+#view table:not(.schedule-month-table) th { font-size: .7rem; font-weight: 600; letter-spacing: .035em; }
+#view .table-scroll { border: 1px solid #ffffff21; border-radius: 16px; }
+#view .schedule-month-table caption { font-weight: 600; letter-spacing: -.01em; padding: 17px 15px; }
+#view .schedule-month-table .month-shift { border-radius: 9px; }
+#view .empty { display: grid; place-content: center; min-height: 130px; padding: 26px 22px; margin: 16px 0; border: 1px dashed #ffffff38; border-radius: 18px; background: #ffffff05; text-align: center; line-height: 1.7; color: #eef1e9; }
+dialog #editor > .row:first-child { padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid #ffffff20; }
+dialog h2 { font-weight: 600; letter-spacing: -.025em; line-height: 1.25; }
+@media (max-width: 760px) {
+ #view .page-heading { padding-bottom: 16px; margin-bottom: 18px; }
+ #view .page-heading h1 { font-size: 1.5rem; }
+ #view .page-heading p { font-size: .8rem; }
+ #view .card-heading { margin-bottom: 16px; }
+ #view .card-heading h2 { font-size: .98rem; }
+ #view .task-row { padding-top: 13px; padding-bottom: 13px; }
+ #view .overview-grid .stat-card { padding: 16px; }
+ #view table:not(.schedule-month-table) td { padding: 12px; }
+ #view .empty { padding: 22px 14px; min-height: 116px; font-size: .82rem; }
+}
